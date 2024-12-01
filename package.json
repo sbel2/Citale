@@ -16,7 +16,7 @@
     "@radix-ui/react-visually-hidden": "^1.1.0",
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.44.2",
-    "ai": "^4.0.3",
+    "ai": "^2.1.33",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lodash.debounce": "^4.0.8",
