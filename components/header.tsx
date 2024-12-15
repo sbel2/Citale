@@ -6,8 +6,9 @@ import SearchBar from '@/components/SearchBar';
 import FilterButton from '@/components/Filter';
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import PostingButton from '@/components/PostForm';
 
-export default function Header({ font }: { font?: string }) {
+export default function Header( {handlePostAction, font}: {handlePostAction: () => void; font?: string })  {
   const pathname = usePathname();
   const router = useRouter();
   const prevPathnameRef = useRef<string | null>(null);
@@ -50,8 +51,16 @@ export default function Header({ font }: { font?: string }) {
           <div className="w-full max-w-sm p-1 sm:p-2">
             <SearchBar onSearch={searchRoute}/>
           </div>
-          
         </div>
+        <button onClick={handlePostAction} className="btn-light flex flex-grow justify-end items-center col-3">
+          <Image
+            src="/plus.svg"
+            alt='Add post sign'
+            width={35}
+            height={35}
+          />
+          <p className="mr-5">Create a Post</p>
+        </button>
         <a
           href="https://forms.gle/fr4anWBWRkeCEgSN6"
           target="_blank"

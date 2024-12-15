@@ -1,28 +1,36 @@
+"use client"
+
 import Header from "@/components/header";
+import PostForm from "@/components/PostForm";
 import { Inter } from "next/font/google";
 import '../globals.css';
 import Script from 'next/script';
-import { Metadata } from "next";
+import { useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Citale | Explore Boston",
-  description: "Things to do in Boston",
-};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [showPostForm, setPostFormDisplay] = useState(false);
+
+  const handlePostClick = () => {
+    setPostFormDisplay(!showPostForm);
+    console.log("AH")
+    console.log(showPostForm);
+  };
+
+
   return (
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes = "any"/>
         <meta name="theme-color" content="#ffffff" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+        <meta name="description" content="Things to do in Boston" />
+        <title>Citale | Explore Boston</title>
         {/* Hotjar Script */}
         <Script id="hotjar-script" strategy="afterInteractive">
           {`
@@ -37,9 +45,12 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={inter.className}>
-        <Header />
-        <main className="bg-gray-951">{children}</main>
+      <body className="${inter.className}" >
+        <Header handlePostAction={ handlePostClick }/>
+        <main className="bg-gray-951 z-[1]">
+        <PostForm showPostForm={ showPostForm } />
+        {children}
+        </main>
       </body>
     </html>
   );

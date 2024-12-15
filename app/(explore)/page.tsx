@@ -39,7 +39,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
+      <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden position-relative z-[2]">
         <div className={styles.container}>
           <SkeletonCardRow />
         </div>
@@ -52,7 +52,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
+    <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden position-relative z-[2]">
       <div className={styles.container}>
           <MasonryGrid posts={posts}/>
       </div>

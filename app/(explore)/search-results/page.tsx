@@ -43,7 +43,7 @@ const Search = () => {
 
   if (loading && firstLoad) {
     return (
-      <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
+      <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden position-relative z-[2]">
         <div className={styles.container}>
           <div className="mt-10">
           <SkeletonCardRow />
@@ -58,7 +58,7 @@ const Search = () => {
   }
 
   return (
-    <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
+    <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden position-relative z-[2]">
       <div className={styles.container}>
       {posts.length === 0 ? (
         <p className="text-center">No posts found :) </p>
@@ -80,4 +80,4 @@ const SearchResult = () => {
   );
 };
 
-export default SearchResult;
+//export default SearchResult;
