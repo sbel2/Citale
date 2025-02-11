@@ -21,11 +21,7 @@ interface ButtonSubmitEvent extends SubmitEvent {
 
 export default function CreatePostPage() {
     const { user, logout } = useAuth();
-    const [isLoading, setLoad] = useState(false)
-    const [isSubmitted, setSubmit] = useState(false)
-    const [postType, setPostType] = useState<string>("")
-    const [showPop, setPopShow] = useState(false)
-    const defaultFormData = {
+    const [formData, setFormData] = useState({
         title: "",
         description: "",
         location: "",
@@ -37,35 +33,101 @@ export default function CreatePostPage() {
         season: "",
         startDate: null as string | null,
         endDate: null as string | null,
-    }
-    const [formData, setFormData] = useState(defaultFormData);
+    });
+    const [videoError, setVideoError] = useState<string | null>(null);
+
+    const checkVideoDuration = (file: File): Promise<number> => {
+        console.log("checkVideoDuration called");
+        
+        return new Promise(async (resolve, reject) => {
+            const video = document.createElement("video");
+            video.preload = "metadata";
+    
+            try {
+                // Convert blob URL back to a Blob
+                console.log("pre")
+                const response = await fetch(file.name); // Fetch the blob URL
+                console.log("response ", response)
+                const blob = await response.blob(); // Convert response to a Blob
+                console.log("blob ", blob)
+                // Read blob as Data URL
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (typeof e.target?.result === "string") {
+                        video.src = e.target.result; // Set the video source to the data URL
+                    } else {
+                        reject("Failed to read video file.");
+                    }
+                };
+    
+                reader.onerror = () => {
+                    reject("Error reading video file.");
+                };
+    
+                reader.readAsDataURL(blob); // Read blob as Data URL
+    
+                video.onloadedmetadata = () => {
+                    if (isNaN(video.duration) || video.duration === Infinity) {
+                        reject("Invalid video duration.");
+                    } else {
+                        resolve(video.duration);
+                    }
+                };
+    
+                video.onerror = () => {
+                    reject("Error loading video.");
+                };
+            } catch (error) {
+                reject("Error fetching blob URL.");
+            }
+        });
+    };
+    
 
     function handleInput(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
         const fieldName = e.target.name;
 
-        //handles setting a string[] of multiple file names for mediaUrl
         if (e.target instanceof HTMLInputElement && e.target.type === "file") {
             const fileList = e.target.files;
             console.log(fileList);
 
             if (fileList) {
-                const filesArray = Array.from(fileList).map((file) => URL.createObjectURL(file));
-                console.log(filesArray);
-                setFormData((prevState) => ({
-                    ...prevState,
-                    [fieldName]: filesArray,
-                }));
+                const processFiles = async () => {
+                    setVideoError(null);
+                    const filesArray: string[] = []; 
+                    
+                    for (const file of Array.from(fileList)) {
+                        if (file.type.startsWith('video/')) {
+                            try {
+                                const duration = await checkVideoDuration(file);
+                                if (duration > 16) {
+                                    setVideoError("Videos must be 15 seconds or shorter. Please upload a shorter video.");
+                                    return;
+                                }
+                            } catch (err) {
+                                console.error("Error checking video duration:", err);
+                                setVideoError("Error processing video. Please try again.");
+                                return;
+                            }
+                        }
+                        filesArray.push(URL.createObjectURL(file));
+                    }
+                    
+                    setFormData((prevState) => ({
+                        ...prevState,
+                        [fieldName]: filesArray,
+                    }));
+                };
+                
+                processFiles();
             }
         } else if (!(e.target instanceof HTMLSelectElement && e.target.hasAttribute('multiple')))  {
             const fieldValue = e.target.value;
-
             setFormData((prevState) => ({
                 ...prevState,
                 [fieldName]: fieldValue,
-            }))
+            }));
         }
-
-        console.log(formData)
     }
 
     const handleLocationChange = (mapData: {
@@ -81,13 +143,6 @@ export default function CreatePostPage() {
     }
 
     const handleMultiSelect = (chosenOptions: string, inputKey: string) => {
-        {/*if (chosenOptions) {
-            const valid = true
-            setValidate(valid)
-        } else {
-            const valid = false
-            setValidate(valid) 
-        }*/}
         console.log("ithappened", chosenOptions)
         setTimeout(() => {
             setFormData((prevState) => ({
@@ -108,22 +163,39 @@ export default function CreatePostPage() {
         console.log(formData)
     }
 
-    const handleFilesInput = (filesArray: FileItem[]) => {
+    const handleFilesInput = async (filesArray: FileItem[]) => {
         console.log("fileshere!");
-        const fileNames = Array.from(filesArray).map((file) => file.name)
-        const fileTypes = Array.from(filesArray).map((file) => (file.type.startsWith("video/") ? true : false))
-        console.log(fileTypes)
-        console.log(fileNames)
+        setVideoError(null);
+        
+        for (const file of filesArray) {
+            if (file.type.startsWith('video/')) {
+                try {
+                    console.log('checking duration')
+                    const duration = await checkVideoDuration(file as unknown as File);
+                    console.log('duration: ', duration)
+                    if (duration > 10) {
+                        setVideoError("Videos must be 10 seconds or shorter. Please upload a shorter video.");
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Error checking video duration:", err);
+                    setVideoError("Error processing video. Please try again.");
+                    return;
+                }
+            }
+        }
+        
+        const fileNames = Array.from(filesArray).map((file) => file.name);
+        const fileTypes = Array.from(filesArray).map((file) => (file.type.startsWith("video/") ? true : false));
+        console.log(fileTypes);
+        console.log(fileNames);
         setFormData((prevState) => ({
             ...prevState,
             mediaUrl: fileNames
-
-        }))
-      }
+        }));
+    }
 
     const uploadFilesToBucket = async (blobUrls: string[], postAction: string) => {
-        //const imageBucket = 'images';
-        //const videoBucket = 'video';
         const testPostBucket = 'test';
         const testDraftBucket = 'test-draft'
         
@@ -160,44 +232,34 @@ export default function CreatePostPage() {
                         break
                 }
 
-
                 if (postAction == "draft" || postAction == "post") {
-                const fileName = `${Date.now()}-${Math.random().toString(35).substring(7)}.${currentFileType}`
-                //const filePath = `/${fileName}`
-                console.log(fileName)
-                let filePath = ""
+                    const fileName = `${Date.now()}-${Math.random().toString(35).substring(7)}.${currentFileType}`
+                    let filePath = ""
 
-                if (currentFileType === "jpg" || currentFileType === "png" || currentFileType === "gif") {
-                    filePath = `images/${fileName}`
-                    console.log(filePath)
+                    if (currentFileType === "jpg" || currentFileType === "png" || currentFileType === "gif") {
+                        filePath = `images/${fileName}`
+                        console.log(filePath)
+                        
+                    } else if (currentFileType === "mp4" || currentFileType === "mov") {
+                        filePath = `videos/${fileName}`
+                        console.log(filePath)
+                    }
                     
-                } else if (currentFileType === "mp4" || currentFileType === "mov") {
-                    filePath = `videos/${fileName}`
-                    console.log(filePath)
-                }
-                
-                const { data, error } = await supabase.storage
-                        .from((postAction=="post") ? testPostBucket : testDraftBucket)
-                        .upload(filePath, blob, {
-                            upsert: false,
-                        });
-                
-                {/* else if (currentFileType === "mp4" || currentFileType === "mov") {
                     const { data, error } = await supabase.storage
-                        .from(videoBucket)
-                        .upload(filePath, blob, {
-                            upsert: false,
-                        });
-                } */}
+                            .from((postAction=="post") ? testPostBucket : testDraftBucket)
+                            .upload(filePath, blob, {
+                                upsert: false,
+                            });
 
-                if (error) {
-                    console.error(`Error uploading ${blobUrl}:`, error.message);
-                    continue;
+                    if (error) {
+                        console.error(`Error uploading ${blobUrl}:`, error.message);
+                        continue;
+                    }
+
+                    const publicUrl = supabase.storage.from((postAction=="post") ? testPostBucket : testDraftBucket).getPublicUrl(filePath);
+                    uploadedFiles.push(fileName);
+                    console.log(`Uploaded ${blobUrl} to:`, publicUrl);
                 }
-
-                const publicUrl = supabase.storage.from((postAction=="post") ? testPostBucket : testDraftBucket).getPublicUrl(filePath);
-                uploadedFiles.push(fileName);
-                console.log(`Uploaded ${blobUrl} to:`, publicUrl);}
             } catch (error) {
                 console.error(`Failed to upload ${blobUrl}:`, (error as Error).message);
             }
@@ -206,40 +268,18 @@ export default function CreatePostPage() {
         return { fileTypes, uploadedFiles }
     }
 
-    useEffect(() => {
-        const submitPopup = setTimeout(() => {
-            setSubmit(false);
-            //window.location.href = '/account/profile'
-
-        }, 3500); // show submit popup for ~3.5seconds
-    }, [isSubmitted])
-
-    useEffect(() => {
-        console.log("effecting")
-        if (isSubmitted) {
-            setLoad(false)
-            if (!isLoading) {
-                setTimeout(() => {
-                    setSubmit(false);
-                    //window.location.href = '/account/profile'
-        
-                }, 3500); // show submit popup for ~3.5seconds
-            }
-        }
-        
-    }, [isSubmitted, isLoading])
     async function submitForm(e: FormEvent) {
         e.preventDefault();
-        //console.log(formData)
+        
+        if (videoError) {
+            return; // Don't submit if there's a video error
+        }
 
         console.log(formData);
         const submitEvent = e.nativeEvent as ButtonSubmitEvent;
-        const perform = submitEvent.submitter.value
-        setPostType(perform);
-        setLoad(true);
+        const perform = submitEvent.submitter.value;
         
         async function postData(postAction: string, formDataUpdate: typeof formData) {
-            //upload images to supabase and get their new filenames and boolean[] of isVideo
             if (!formData.mediaUrl[0]) {
                 console.log("madeit", formDataUpdate)
                 let statusPost = "draft";
@@ -251,7 +291,6 @@ export default function CreatePostPage() {
                 }
                 
                 console.log(draftFormData);
-                //post data to posts database
                 const { data, error } = await supabase
                 .from('testDraft')
                 .insert([draftFormData]);
@@ -270,7 +309,6 @@ export default function CreatePostPage() {
             let thumbnailUrl = null;
             let hasVideo = false;
 
-            //check for a video and if it exists set as thumbnailUrl -- ASSUMES VIDEO IS THUMBNAIL
             for (const [index, type] of fileTypes.entries()) {
                 if (type == true) {
                     hasVideo = true;
@@ -281,7 +319,6 @@ export default function CreatePostPage() {
 
             let finalFormData = {};
             console.log(postAction)
-            //add computed states to FormData and update mediaUrl with supabase file names
             if (postAction == "preview") {
                 finalFormData = {
                     ...formDataUpdate,
@@ -306,207 +343,186 @@ export default function CreatePostPage() {
                 }
                 
                 console.log(finalFormData);
-                //post data to posts database
-                
                 const { data, error } = await supabase
                 .from((postAction === "post")? "testPost" : "testDraft")
                 .insert([finalFormData]);
-                
 
                 if (error) {
                     console.error('Error Posting data:', error);
                     return
                 }
 
-                console.log('Data posted!!');
-            
-
-                //window.location.href = `/account/profile/${user?.id}`
-                window.location.href = `/account/profile/${user?.id}`
-                console.log('Data posted!!');
-                //window.history.pushState(null, '', `/${postType}/${post.post_id}`)
+                console.log('Data posted!!')
             }
-            
         };
         
-        //if (perform == 'preview') {
-
+        if (perform == 'preview') {
             //window.location.href = '/account/profile';
-        //} else {
-            console.log("Procesing Form Submission...")
+        } else {
+            console.log("Processing Form Submission...")
             console.log(formData)
-            await postData(perform, formData);
-            console.log(isSubmitted)
-            window.location.href = `/account/profile/${user?.id}`
-           // window.history.pushState(null, '', `/account/profile/${user?.id}`)
-           
-        //}
-        
+            postData(perform, formData);
+            console.log("Processing Form Submission...")
+            //window.location.href = '/account/profile';
+        }
     }
 
-    console.log('Boom')
-
-        return (
-                <div>
-                    <form onSubmit={submitForm}  id="addpost" style={styles.form}>
-                        <p style={styles.title}>Post an Event!</p>
-                        <label htmlFor="eventdata" style={styles.label}> Title
-                            <input
-                                type="text"
-                                id="eventdata"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleInput}
-                                style={styles.input}
-                                required
-                            />
-                        </label>
-                        <DatesInput onSeasonChange={handleMultiSelect} onDateChange={handleDateInput} style={styles}/>
-                        <label htmlFor="locationdata" style={styles.specialLabel}> Area
-                            <select 
-                                name="location"
-                                id="location"
-                                onChange={handleInput}
-                                value={formData.location}
-                                style={styles.specialInput}
-                            >
-                                <option value="" disabled> Select Boston Area... </option>
-                                {locationList.map((location) => (
-                                    <option key={location} value={location}>
-                                        {location}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label htmlFor="locationtitle" style={styles.label}> Location
-                            <input
-                                type="text"
-                                id="locationtitle"
-                                name="mapUrl"
-                                value={formData.mapUrl}
-                                onChange={handleInput}
-                                style={styles.input}
-                                required
-                            />
-                        </label>
-                        {/*<AutocompleteLocation onLocationChange={handleLocationChange} style={styles}/> FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX FIX*/}
-                        <label htmlFor="price" style={styles.specialLabel}> Price
-                            <select 
-                                name="price"
-                                id="price"
-                                onChange={handleInput}
-                                value={formData.price}
-                                style={styles.specialInput}
-                            >
-                                <option value="" disabled> Select Price Range... </option>
-                                <option key='free' value='free'>
-                                    Free
-                                </option>
-                                <option key='$' value='$'>
-                                    $
-                                </option>
-                                <option key='$$' value='$$'>
-                                    $$
-                                </option>
-                                <option key='$$$' value='$$$'>
-                                    $$$
-                                </option>
-                            </select>
-                        </label>
-                        <div className="flex">
-                            <label htmlFor="descriptiondata" style={styles.label}>Description</label>
-                            <textarea
-                                id="descriptiondata"
-                                style={styles.textarea} 
-                                rows={5}
-                                cols={40}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInput}
-                                required
-                                
-                            />
-                        </div>
-                        <div>
-                            <p style={styles.label}> Event Type(s)</p>
-                            {/*<input 
-                                type="text"
-                                id="require"
-                                name="require"
-                                value={isValid ? "full" : ''}
-                                style={{visibility: "hidden", height: "1px"}}
-                            />*/}
-                            <MultiSelectChipsInput onMultiSelectChange={handleMultiSelect} elementKey="category" options={categoryList} />
-                        </div>
-                        {/* <label htmlFor="urldata" style={styles.specialLabel}> Upload Images and Videos
-                            <input
-                                type="file"
-                                id="urldata"
-                                name="mediaUrl"
-                                multiple
-                                accept=".jpg, .jpeg, .png, .gif, .mp4, .mov"
-                                onChange={handleInput}
-                                style={styles.specialInput}
-                                required
-                            />
-                        </label> */}
-                        <FilesInput style={styles} onFilesChange= {handleFilesInput}/>
-                    </form>
-                    <div className="flex justify-end">
-                    {isLoading && (
-                            <p className="align-self-start">Saving your Content...</p>
-                        )}
-                        <button type="submit" form="addpost" value="post" style={styles.submit}>Post</button>
-                        <div className="flex">
-                            <button type="submit" form="addpost" value="draft" formNoValidate style={styles.submit}>Save as Draft</button>
-                            {/*<button type="submit" form="addpost" value="preview" formNoValidate style={styles.submit}>Preview Post</button>*/}
-                        </div>
+    // Return JSX
+    return (
+        <div>
+            <form onSubmit={submitForm} id="addpost" style={styles.form}>
+                <p style={styles.title}>Post an Event!</p>
+                {videoError && (
+                    <div style={styles.errorMessage}>
+                        {videoError}
                     </div>
-                    <div>
-                        {isLoading && (
-                            <p>Saving your Content...</p>
-                        )}
-                    </div>
+                )}
+                <label htmlFor="eventdata" style={styles.label}> Title
+                    <input
+                        type="text"
+                        id="eventdata"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInput}
+                        style={styles.input}
+                        required
+                    />
+                </label>
+                <DatesInput onSeasonChange={handleMultiSelect} onDateChange={handleDateInput} style={styles}/>
+                <label htmlFor="locationdata" style={styles.specialLabel}> Area
+                    <select 
+                        name="location"
+                        id="location"
+                        onChange={handleInput}
+                        value={formData.location}
+                        style={styles.specialInput}
+                    >
+                        <option value="" disabled> Select Boston Area... </option>
+                        {locationList.map((location) => (
+                            <option key={location} value={location}>
+                                {location}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label htmlFor="locationtitle" style={styles.label}> Location
+                    <input
+                        type="text"
+                        id="locationtitle"
+                        name="mapUrl"
+                        value={formData.mapUrl}
+                        onChange={handleInput}
+                        style={styles.input}
+                        required
+                    />
+                </label>
+                <label htmlFor="price" style={styles.specialLabel}> Price
+                    <select 
+                        name="price"
+                        id="price"
+                        onChange={handleInput}
+                        value={formData.price}
+                        style={styles.specialInput}
+                    >
+                        <option value="" disabled> Select Price Range... </option>
+                        <option key='free' value='free'>
+                            Free
+                        </option>
+                        <option key='$' value='$'>
+                            $
+                        </option>
+                        <option key='$$' value='$$'>
+                            $$
+                        </option>
+                        <option key='$$$' value='$$$'>
+                            $$$
+                        </option>
+                    </select>
+                </label>
+                <div className="flex">
+                    <label htmlFor="descriptiondata" style={styles.label}>Description</label>
+                    <textarea
+                        id="descriptiondata"
+                        style={styles.textarea} 
+                        rows={5}
+                        cols={40}
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInput}
+                        required
+                    />
                 </div>
-        )
-}
+                <div>
+                    <p style={styles.label}> Event Type(s)</p>
+                    <MultiSelectChipsInput onMultiSelectChange={handleMultiSelect} elementKey="category" options={categoryList} />
+                </div>
+                <FilesInput style={styles} onFilesChange={handleFilesInput}/>
+            </form>
+            <div className="flex justify-end">
+                <button 
+                    type="submit" 
+                    form="addpost" 
+                    value="post" 
+                    style={{
+                        ...styles.submit,
+                        ...(videoError ? styles.submitDisabled : {})
+                    }}
+                    disabled={!!videoError}
+                >
+                    Post
+                </button>
+                <div className="flex">
+                    <button 
+                        type="submit" 
+                        form="addpost" 
+                        value="draft" 
+                        formNoValidate 
+                        style={{
+                            ...styles.submit,
+                            ...(videoError ? styles.submitDisabled : {})
+                        }}
+                        disabled={!!videoError}
+                    >
+                        Save as Draft
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
-
-
+// Styles object
 const styles = {
     total: {
-      display: 'flex',
-      position: 'fixed' as const,
-      left: '30%',
-      justifyContent: 'center',
-      zIndex: 10,
-      width: '40%',
-      //height: '60%',
+        display: 'flex',
+        position: 'fixed' as const,
+        left: '30%',
+        justifyContent: 'center',
+        zIndex: 10,
+        width: '40%',
     },
 
     form: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-      width: '100%',
-      minWidth: '500px',
-      margin: '20px 10px',
-      //boxShadow: '0 4px 400px 0 rgba(0, 0, 0, 0.2), 0 6px 400px 0 rgba(0, 0, 0, 0.19)',
-      borderRadius: '15px',
-      backgroundColor: 'white',
+        display: 'flex',
+        flexDirection: 'column' as const,
+        width: '100%',
+        minWidth: '500px',
+        margin: '20px 10px',
+        borderRadius: '15px',
+        backgroundColor: 'white',
     },
 
     title: {
-      alignSelf: 'center',
-      fontSize: '25px',
-      //fontFamily: 'Inter SemiBold 600', eventually bold title
-      margin: '25px 0px 10px',
+        alignSelf: 'center',
+        fontSize: '25px',
+        margin: '25px 0px 10px',
     },
 
     input: {
-      backgroundColor: '#f2f3f4',
-      borderRadius: '8px',
-      height: '30px',
-      width: '100%'
+        backgroundColor: '#f2f3f4',
+        borderRadius: '8px',
+        height: '30px',
+        width: '100%'
     },
 
     inputLined: {
@@ -516,23 +532,23 @@ const styles = {
     },
 
     textarea: {
-      backgroundColor: '#f2f3f4',
-      borderRadius: '8px',
-      width: '100%',
-      marginRight: '25px',
+        backgroundColor: '#f2f3f4',
+        borderRadius: '8px',
+        width: '100%',
+        marginRight: '25px',
     },
 
     label: {
-      margin: '10px 25px 0px',
-      fontSize: '15px',
-      display: 'flex',
-      flexDirection: 'column' as const,
-      alignItems: 'flex-start',
+        margin: '10px 25px 0px',
+        fontSize: '15px',
+        display: 'flex',
+        flexDirection: 'column' as const,
+        alignItems: 'flex-start',
     },
 
     specialLabel: {
-      margin: '10px 25px 0px',
-      fontSize: '15px',
+        margin: '10px 25px 0px',
+        fontSize: '15px',
     },
 
     map: {
@@ -540,23 +556,39 @@ const styles = {
     },
 
     specialInput: {
-      margin: '10px 5px',
-      backgroundColor:'#f2f3f4',
+        margin: '10px 5px',
+        backgroundColor: '#f2f3f4',
     },
 
     submit: {
-      border: '1px white solid',
-      borderRadius: '10px',
-      backgroundColor: '#ff0000',
-      color: 'white',
-      margin: '100px 10px 40px 10px',
-      alignSelf: 'flex-end',
-      width: '200px',
-      height: '35px',
-      cursor: 'pointer',
+        border: '1px white solid',
+        borderRadius: '10px',
+        backgroundColor: '#ff0000',
+        color: 'white',
+        margin: '100px 10px 40px 10px',
+        alignSelf: 'flex-end',
+        width: '200px',
+        height: '35px',
+        cursor: 'pointer',
     },
 
     dateDisplay: {
-      display: 'none !important',
+        display: 'none !important',
+    },
+
+    errorMessage: {
+        backgroundColor: '#FEE2E2',
+        color: '#DC2626',
+        padding: '12px 16px',
+        margin: '10px 25px',
+        borderRadius: '8px',
+        fontSize: '14px',
+        border: '1px solid #FCA5A5',
+    },
+
+    submitDisabled: {
+        backgroundColor: '#cccccc',
+        cursor: 'not-allowed',
+        opacity: 0.7,
     }
-  }
+}
