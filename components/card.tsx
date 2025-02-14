@@ -61,6 +61,7 @@ const Card: React.FC<{ post: Post }> = ({ post }) => {
 
   // Function to close the dialog and reset the URL
   const handleClose = () => {
+
     router.back();
     // Close the dialog
     setIsOpen(false);

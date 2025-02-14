@@ -7,13 +7,14 @@ import { IoIosArrowDown } from "react-icons/io";
 const supabase = createClient();
 
 interface FilterProps {
-  onFilter: (option: string, location: string, price: string, category: string) => Promise<void>;
+  onFilter: (option: string, location: string, price: string, category: string, season: string) => Promise<void>;
 }
 
 const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
   const [filterEvents, setFilterEvents] = useState('All');
   const [filterLocations, setFilterLocations] = useState('All');
   const [filterPrice, setFilterPrice] = useState('All');
+  const [filterSeason, setFilterSeason] = useState('All');
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const filterParams = useSearchParams();
   const pathname = usePathname();
@@ -22,21 +23,25 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
     Price: string[];
     Events: string[];
     Locations: string[];
+    Season:string[];
   }>({
     Price: [],
     Events: [],
     Locations: [],
+    Season: [],
   });
 
   const dropdownRefs = {
     Events: useRef<HTMLDivElement | null>(null),
     Locations: useRef<HTMLDivElement | null>(null),
     Price: useRef<HTMLDivElement | null>(null),
+    Season: useRef<HTMLDivElement | null>(null),
   };
   const buttonRefs = {
     Events: useRef<HTMLButtonElement | null>(null),
     Locations: useRef<HTMLButtonElement | null>(null),
     Price: useRef<HTMLButtonElement | null>(null),
+    Season: useRef<HTMLDivElement | null>(null),
   };
 
   useEffect(() => {
@@ -63,9 +68,10 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
         const { data: eventsData, error: eventsError } = await supabase.from('posts').select('categories_short');
         const { data: locationsData, error: locationsError } = await supabase.from('posts').select('location_short');
         const { data: priceData, error: priceError } = await supabase.from('posts').select('price');
+        const { data: seasonData, error: seasonError } = await supabase.from('posts').select('season');
 
-        if (eventsError || locationsError || priceError) {
-          console.error('Error fetching categories:', eventsError || locationsError || priceError);
+        if (eventsError || locationsError || priceError || seasonError) {
+          console.error('Error fetching categories:', eventsError || locationsError || priceError || seasonError);
           return;
         }
 
@@ -75,6 +81,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
           Price: priceData
             ? [...new Set(priceData.map((item) => item.price).filter(Boolean))].sort((a, b) => (a === 'Free' ? -1 : b === 'Free' ? 1 : a.localeCompare(b)))
             : [],
+          Season: seasonData ? [...new Set(seasonData.map((item) => item.season).filter(Boolean))].sort() : [],
         });
       } catch (error) {
         console.error('Unexpected error:', error);
@@ -84,11 +91,12 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
     fetchCategories();
   }, []);
 
-  const updateFilterParams = (newOption: string, newLocation: string, newPrice: string) => {
+  const updateFilterParams = (newOption: string, newLocation: string, newPrice: string, newSeason: string) => {
     const queryParams = new URLSearchParams(window.location.search);
     newOption !== 'All' ? queryParams.set('option', newOption) : queryParams.delete('option');
     newLocation !== 'All' ? queryParams.set('location', newLocation) : queryParams.delete('location');
     newPrice !== 'All' ? queryParams.set('price', newPrice) : queryParams.delete('price');
+    newSeason !== 'All' ? queryParams.set('season', newSeason) : queryParams.delete('season');
     router.push(`${pathname}?${queryParams.toString()}`);
   };
 
@@ -96,22 +104,25 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
     const option = filterParams.get('option') || 'All';
     const location = filterParams.get('location') || 'All';
     const price = filterParams.get('price') || 'All';
+    const season = filterParams.get('season') || 'All';
 
     setFilterEvents(categories.Events.includes(option) ? option : 'All');
     setFilterLocations(categories.Locations.includes(location) ? location : 'All');
     setFilterPrice(categories.Price.includes(price) ? price : 'All');
+    setFilterSeason(categories.Season.includes(season) ? season : 'All');
   }, [filterParams, categories]);
 
   const handleFilterChange = useCallback(
-    async (option: string, location: string, price: string, category: string) => {
+    async (option: string, location: string, price: string, category: string, season: string) => {
       if (category === 'Events') setFilterEvents(option);
       if (category === 'Locations') setFilterLocations(location);
       if (category === 'Price') setFilterPrice(price);
+      if (category === 'Season') setFilterSeason(season);
 
-      updateFilterParams(option, location, price);
+      updateFilterParams(option, location, price, season);
 
       try {
-        await onFilter(option, location, price, category);
+        await onFilter(option, location, price, category, season);
       } catch (error) {
         console.error('Filter error:', error);
       }
@@ -123,6 +134,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
     setFilterEvents('All');
     setFilterLocations('All');
     setFilterPrice('All');
+    setFilterSeason('All');
     router.push(`${pathname}?`);
   };
 
@@ -156,6 +168,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
                   category === 'Events' ? option : filterEvents,
                   category === 'Locations' ? option : filterLocations,
                   category === 'Price' ? option : filterPrice,
+                  category === 'Season' ? option : filterSeason,
                   category
                 );
                 setDropdownOpen(null); // Close dropdown when a category is selected
@@ -175,6 +188,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
       <FilterDropdown category="Events" selected={filterEvents} options={categories.Events} />
       <FilterDropdown category="Locations" selected={filterLocations} options={categories.Locations} />
       <FilterDropdown category="Price" selected={filterPrice} options={categories.Price} />
+      <FilterDropdown category="Season" selected={filterSeason} options={categories.Season} />
 
       <button
         className="ml-2 md:ml-5 w-25 md:w-32 px-3 py-2.5 bg-[#fd0000] text-white rounded-full cursor-pointer hover:bg-[#fd0000] text-center text-xs md:text-sm flex justify-center items-center"

@@ -3,7 +3,7 @@ import { Post } from './types';
 
 const supabase = createClient();
 
-export async function handleFilter(option: string, location: string, price: string): Promise<Post[] | null> {
+export async function handleFilter(option: string, location: string, price: string, season:string): Promise<Post[] | null> {
   try {
     let query = supabase.from('posts').select('*').or('expired_dates.is.null,expired_dates.gte.' + new Date().toISOString().split('T')[0]);
 
@@ -16,6 +16,9 @@ export async function handleFilter(option: string, location: string, price: stri
     }
     if (price !== 'All') {
       query = query.eq('price',price);
+    }
+    if (season !== 'All') {
+      query = query.eq('season',season);
     }
 
     // Apply ordering

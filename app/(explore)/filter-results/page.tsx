@@ -15,6 +15,7 @@ const Filter = () => {
   const selectedOption = searchParams.get('option') || 'All';
   const selectedLocation = searchParams.get('location') || 'All';
   const selectedPrice = searchParams.get('price') || 'All';
+  const selectedSeason = searchParams.get('season') || 'All';
   const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -25,13 +26,13 @@ const Filter = () => {
   
     return () => {
     };
-  }, [selectedOption, selectedLocation, selectedPrice]);
+  }, [selectedOption, selectedLocation, selectedPrice, selectedSeason]);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (selectedOption || selectedLocation || selectedPrice) {
+      if (selectedOption || selectedLocation || selectedPrice || selectedSeason) {
         setLoading(true);
-        const data = await handleFilter(selectedOption, selectedLocation, selectedPrice);
+        const data = await handleFilter(selectedOption, selectedLocation, selectedPrice, selectedSeason);
         setPosts(data || []); // Fallback to an empty array if data is null
         setError(data ? null : 'Failed to load posts'); // Set error if data is null
         setLoading(false);
@@ -40,7 +41,7 @@ const Filter = () => {
     };
 
     fetchData();
-  }, [selectedOption, selectedLocation, selectedPrice]);
+  }, [selectedOption, selectedLocation, selectedPrice, selectedSeason]);
 
   if (loading && firstLoad) {
     return (
