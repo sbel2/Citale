@@ -101,6 +101,7 @@ export default function SharePage() {
                 alert("Please upload media.");
                 return;
             }
+
             // ✅ Determine if a video is included
             const hasVideo = uploadedFiles.some((file) => file.type.startsWith("video/"));
 
