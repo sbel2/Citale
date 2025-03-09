@@ -21,6 +21,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   const [avatarUrl, setAvatarUrl] = useState('avatar.png');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [submit, setSubmit] = useState(false)
+  const previousMessagesRef = useRef<ChatMessage[]>([]);
 
 
   const fetchChatMessages = async () => {
@@ -54,13 +55,10 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
 
       // Sort by sent_at (descending order)
       combinedMessages.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
-      if (JSON.stringify(combinedMessages) !== JSON.stringify(messages)) {
-        console.log('different')
-        console.log(JSON.stringify(combinedMessages))
-        console.log(JSON.stringify(messages))
-        // setMessages(combinedMessages); // Update state only if messages have changed
+      if (JSON.stringify(combinedMessages) !== JSON.stringify(previousMessagesRef.current)) {
+        setMessages(combinedMessages);
+        previousMessagesRef.current = combinedMessages;
       }
-      return combinedMessages
     }
     
   };
@@ -84,15 +82,8 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (user) {
       // Fetch messages immediately
-      // Fetch the latest messages to ensure the state is up-to-date
-      const fetchData = async () => {
-        const newMessages = await fetchChatMessages();
-        if (newMessages) {
-          setMessages(newMessages);
-        }
-      };
+      fetchChatMessages();
 
-      fetchData();
       // Set up polling every 2 seconds
       const interval = setInterval(fetchChatMessages, 2000);
 
