@@ -69,40 +69,26 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
       setAvatarUrl(data?.avatar_url || '');
   }
   
-
-  // Listen for new messages where you are the sender OR the receiver
-  useEffect(() => {
-    console.log('fetch new message')
-    if (user) {
-      const channel = supabase
-        .channel('chat_channel')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'chats',
-            filter: `or(sender_id.eq.${user.id},receiver_id.eq.${user.id})`, // Listen for messages where you are sender OR receiver
-          },
-          (payload) => {
-            console.log('New message payload:', payload.new);
-            const message = payload.new as ChatMessage; // Cast to ChatMessage
-            setMessages((prevMessages) => [...prevMessages, message]); // Add new message to the list
-          }
-        )
-        .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-
   // Fetch messages on component mount
   useEffect(() => {
     fetchChatMessages();
     fetchProfile();
   }, [user, userId]);
+
+  useEffect(() => {
+    if (user) {
+      // Fetch messages immediately
+      fetchChatMessages();
+
+      // Set up polling every 2 seconds
+      const interval = setInterval(fetchChatMessages, 2000);
+
+      // Clean up the interval on unmount
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [user, userId]); // Re-run when `user` or `userId` changes
 
   // Handle submitting user input
   const handleSubmit = async (input: string) => {
