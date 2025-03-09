@@ -20,6 +20,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('avatar.png');
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [submit, setSubmit] = useState(false)
 
 
   const fetchChatMessages = async () => {
@@ -40,8 +41,6 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
         .eq('sender_id', userId)
         .order('sent_at', { ascending: false });
 
-        console.log(receivedData)
-
       if (sentError || receivedError) {
         console.error('Error fetching chat messages:', sentError || receivedError);
         return;
@@ -55,8 +54,15 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
 
       // Sort by sent_at (descending order)
       combinedMessages.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
-      setMessages(combinedMessages); // Store the combined sorted messages in state
+      if (JSON.stringify(combinedMessages) !== JSON.stringify(messages)) {
+        console.log('different')
+        console.log(JSON.stringify(combinedMessages))
+        console.log(JSON.stringify(messages))
+        // setMessages(combinedMessages); // Update state only if messages have changed
+      }
+      return combinedMessages
     }
+    
   };
 
   const fetchProfile = async() =>{
@@ -78,8 +84,15 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (user) {
       // Fetch messages immediately
-      fetchChatMessages();
+      // Fetch the latest messages to ensure the state is up-to-date
+      const fetchData = async () => {
+        const newMessages = await fetchChatMessages();
+        if (newMessages) {
+          setMessages(newMessages);
+        }
+      };
 
+      fetchData();
       // Set up polling every 2 seconds
       const interval = setInterval(fetchChatMessages, 2000);
 
@@ -115,7 +128,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
           console.error('Error sending message:', error);
         } else {
           // Add the new message to the local state
-          // setMessages((prevMessages) => [...prevMessages, data[0]]);
+          setMessages((prevMessages) => [...prevMessages, data[0]]);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
