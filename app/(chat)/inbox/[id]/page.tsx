@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/definitions'; // Ensure correct import
 import { useAuth } from 'app/context/AuthContext';
 import ChatInput from '@/components/TalebotChat';
@@ -19,7 +19,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('avatar.png');
-  
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
 
   const fetchChatMessages = async () => {
@@ -125,9 +125,16 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
     }
   };
 
+   // Auto-scroll to the bottom when messages change
+   useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]); // Re-run when `messages` changes
+
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
       {user && messages.length > 0 &&(
         messages.map((m, index) => (
           <div key={index} className={`flex gap-3 max-w-3xl mx-auto ${m.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
