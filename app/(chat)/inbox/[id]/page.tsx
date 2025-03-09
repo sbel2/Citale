@@ -72,6 +72,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
 
   // Listen for new messages where you are the sender OR the receiver
   useEffect(() => {
+    console.log('fetch new message')
     if (user) {
       const channel = supabase
         .channel('chat_channel')
@@ -84,14 +85,15 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
             filter: `or(sender_id.eq.${user.id},receiver_id.eq.${user.id})`, // Listen for messages where you are sender OR receiver
           },
           (payload) => {
+            console.log('New message payload:', payload.new);
             const message = payload.new as ChatMessage; // Cast to ChatMessage
             setMessages((prevMessages) => [...prevMessages, message]); // Add new message to the list
           }
         )
         .subscribe();
 
-      return () => {
-        channel.unsubscribe();
+        return () => {
+          supabase.removeChannel(channel);
       };
     }
   }, [user]);
@@ -127,7 +129,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
           console.error('Error sending message:', error);
         } else {
           // Add the new message to the local state
-          setMessages((prevMessages) => [...prevMessages, data[0]]);
+          // setMessages((prevMessages) => [...prevMessages, data[0]]);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
