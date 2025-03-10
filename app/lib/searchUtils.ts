@@ -11,7 +11,6 @@ export async function handleSearch(query: string): Promise<Post[] | null> {
       .or('endDate.is.null,endDate.gte.' + new Date().toISOString().split('T')[0])
       .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
       .order('created_at', { ascending: false })
-      .order('like_count', { ascending: false });
 
     if (error) {
       console.error('Error fetching posts:', error);

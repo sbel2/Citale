@@ -195,7 +195,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
 };
 
 const FilterComponent: React.FC<FilterProps> = (props) => (
-  <Suspense fallback={<div>Loading filters...</div>}>
+  <Suspense fallback={<div></div>}>
     <FilterButton {...props} />
   </Suspense>
 );

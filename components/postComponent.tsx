@@ -31,10 +31,9 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
   const { comments: initialComments, saveComment, commentCount, deleteComment, likes, toggleLike, userLikes } = useComments({ post_id: post.post_id, user_id: user?.id });
   const [comments, setComments] = useState(initialComments);
 
-  const { liked, likesCount, toggleLike: togglePostLike } = useLike({
+  const { liked, likesCount, toggleLike: togglePostLike, likesFeed } = useLike({
     postId: post.post_id,
     userId: user?.id,
-    initialLikeCount: post.like_count
   });
 
   const { favorited, favoritesCount, toggleFavorite } = useFavorite({
@@ -76,10 +75,11 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
             deleteComment={deleteComment} 
             userId={user?.id} 
             likes={likes} 
-            userLikes={userLikes} // Ensure this is passed
+            userLikes={userLikes}
             toggleLike={toggleLike}
             showLoginPopup={showLoginPopup}
             setShowLoginPopup={setShowLoginPopup}
+            likesFeed={likesFeed}
           />
           <PostFooter 
               liked={liked}

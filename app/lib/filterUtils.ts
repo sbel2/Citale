@@ -19,7 +19,7 @@ export async function handleFilter(option: string, location: string, price: stri
     }
 
     // Apply ordering
-    query = query.order('created_at', { ascending: false }).order('like_count', { ascending: false });
+    query = query.order('created_at', { ascending: false });
 
     // Fetch data
     const { data, error } = await query;

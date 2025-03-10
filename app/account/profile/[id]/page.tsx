@@ -6,7 +6,6 @@ import { useAuth } from 'app/context/AuthContext';
 import { supabase } from '@/app/lib/definitions';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import Linkify from 'react-linkify';
 import { Post } from '@/app/lib/types';
 import styles from '@/components/postComponent.module.css'
 import FollowingPopup from "./following/following";
@@ -252,23 +251,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     }, [following]);
 
 
-    // Link decorator for clickable URLs in bio
-    const linkDecorator = (href: string, text: string, key: number): React.ReactNode => {
-        if (!isValidUrl(href)) {
-            return <span key={key}>{text}</span>;
-        }
-        setFollowing(false);
-    };
-
-    function isValidUrl(string: string): boolean {
-        try {
-            new URL(string);
-        } catch (_) {
-            return false;
-        }
-        return true;
-    }
-
     const handleFollow = async () => {
         const { error } = await supabase
         .from('relationships')
@@ -298,13 +280,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         }
         setFollowing(false);
     };
-
-    const isMobile = () => {
-        return (
-          /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-          window.matchMedia("(max-width: 768px)").matches
-        );
-      };
 
     return (
         <div className="w-full min-h-screen bg-white pb-20 md:pb-0">
@@ -359,12 +334,17 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         
                         {userProfile.website && (
                             <div className="text-sm mb-4">
-                                <Linkify>
-                                    <a className="text-blue-500 hover:text-blue-600">{userProfile.website}</a>
-                                </Linkify>
+                                <a 
+                                    href={userProfile.website} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-blue-500 hover:text-blue-600 break-all"
+                                >
+                                    {userProfile.website}
+                                </a>
                             </div>
                         )}
-                        
+
                         <p className="text-gray-600 text-sm mb-6">{userProfile.bio || 'No bio yet'}</p>
 
                         {/* Display followers and following counts*/}
@@ -375,7 +355,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             </button>
                             <FollowingPopup isOpen={isFollowingOpen} setIsOpen={setIsFollowingOpen} />
                             <button onClick={() => setIsFollowerOpen(true)} className="btn">
-                                <p className="text-sm text-gray-500 mr-2">Follower</p>
+                                <p className="text-sm text-gray-500 mr-2">
+                                    {followersCount <= 1 ? "Follower" : "Followers"}
+                                </p>
                                 <p className="text-sm font-medium">{followersCount}</p>
                             </button>
                             <FollowerPopup isOpen={isFollowerOpen} setIsOpen={setIsFollowerOpen} />
@@ -433,7 +415,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             </div> */}
                             
                         </div>
-                        {isOpen && user && user.id === userId && isMobile() && (
+                        {/* {isOpen && user && user.id === userId && isMobile() && (
                             <div className=" right-0 mt-2 w-48 bg-white rounded-md shadow-lg border" style={{margin: "5px"}}>
                                 <ul className="py-1">
                                     <li
@@ -443,7 +425,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                     Drafts
                                     </li>
                                 </ul>
-                            </div>)}
+                            </div>)} */}
                     </div>
                     <div className="border-b border-gray-300 mb-5"></div>
                     

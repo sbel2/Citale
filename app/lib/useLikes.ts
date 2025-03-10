@@ -1,110 +1,134 @@
 import { supabase } from "@/app/lib/definitions";
+import { useState, useEffect } from "react";
 import { useLikeStore } from "./useLikeStore";
-import { useEffect } from "react";
+import { UserProfile } from "./types";
 
-interface UseLikeProps {
-    postId: number;
-    userId?: string;
-    initialLikeCount: number;
+interface Like {
+  id: number;
+  user_id: string;
+  post_id: string;
+  liked_at: string;
+  profiles?: UserProfile;
 }
 
-export const useLike = ({ postId, userId, initialLikeCount }: UseLikeProps) => {
+interface UseLikeProps {
+  postId: number; // Matches useLikeStore
+  userId?: string;
+}
+
+export const useLike = ({ postId, userId }: UseLikeProps) => {
   const { likes, updateLike } = useLikeStore();
-  const likesCount = likes[postId]?.count ?? initialLikeCount;
-  const liked = likes[postId]?.liked ?? false;
+  const likesCount = likes[postId]?.count ?? 0; // Fallback to 0 if not in store
+  const liked = likes[postId]?.liked ?? false; // Fallback to false if not in store
+  const [likesFeed, setLikesFeed] = useState<Like[]>([]); // New state for likes feed
 
+  // Fetch like information for the post
   const fetchLikeStatus = async () => {
-      if (!userId) return;
+    try {
+      // Fetch the total number of likes for the post
+      const { count, error: countError } = await supabase
+        .from("likes")
+        .select("id", { count: "exact" })
+        .eq("post_id", postId);
 
-      try {
-          const { data: likeData, error: likeError } = await supabase
-              .from('likes')
-              .select()
-              .match({ user_id: userId, post_id: postId })
-              .maybeSingle();
+      if (countError) throw countError;
 
-          if (likeError) throw likeError;
+      // Fetch the list of likes with user profiles and timestamps
+      const { data: likesData, error: likesError } = await supabase
+        .from("likes")
+        .select(`*, profiles (username, avatar_url)`)
+        .eq("post_id", postId)
+        .order("liked_at", { ascending: false });
 
-          const { data: postData, error: postError } = await supabase
-              .from('posts')
-              .select('like_count')
-              .eq('post_id', postId)
-              .single();
+      if (likesError) throw likesError;
 
-          if (postError) throw postError;
+      // Check if the current user has liked the post
+      const userLike = likesData?.find((like) => like.user_id === userId);
 
-          updateLike(postId, postData.like_count, !!likeData);
-      } catch (error) {
-          console.error('Error fetching like status:', error);
-      }
+      // Update global store
+      updateLike(postId, count || 0, !!userLike);
+      setLikesFeed(likesData || []); // Update likes feed
+    } catch (error) {
+      console.error("Error fetching like status:", error);
+    }
   };
 
-  const updatePostLikeCount = async (count: number) => {
-      const { error } = await supabase
-          .from('posts')
-          .update({ like_count: count })
-          .eq('post_id', postId);
-      
-      if (error) throw new Error(`Failed to update post like count: ${error.message}`);
-  };
-
+  // Add a like to the post
   const addLike = async () => {
-      if (!userId) return;
+    if (!userId) return;
 
+    try {
       const { error } = await supabase
-          .from('likes')
-          .insert([{ user_id: userId, post_id: postId }]);
-      
-      if (error) throw new Error(`Failed to add like: ${error.message}`);
+        .from("likes")
+        .insert([{ user_id: userId, post_id: postId }]);
 
-      await updatePostLikeCount(likesCount + 1);
-      updateLike(postId, likesCount + 1, true); // Update Global State
+      if (error) throw error;
+
+      // Update global store
+      updateLike(postId, likesCount + 1, true);
+      fetchLikeStatus(); // Refresh likes feed
+    } catch (error) {
+      console.error("Error adding like:", error);
+    }
   };
 
+  // Remove a like from the post
   const removeLike = async () => {
-      if (!userId) return;
+    if (!userId) return;
 
+    try {
       const { error } = await supabase
-          .from('likes')
-          .delete()
-          .match({ user_id: userId, post_id: postId });
-      
-      if (error) throw new Error(`Failed to remove like: ${error.message}`);
+        .from("likes")
+        .delete()
+        .match({ user_id: userId, post_id: postId });
 
-      await updatePostLikeCount(likesCount - 1);
-      updateLike(postId, likesCount - 1, false); // Update Global State
+      if (error) throw error;
+
+      // Update global store
+      updateLike(postId, likesCount - 1, false);
+      fetchLikeStatus(); // Refresh likes feed
+    } catch (error) {
+      console.error("Error removing like:", error);
+    }
   };
 
+  // Toggle like for the post
   const toggleLike = async () => {
-      try {
-          if (liked) {
-              await removeLike();
-          } else {
-              await addLike();
-          }
-      } catch (error) {
-          console.error('Error handling like:', error);
-      }
+    if (liked) {
+      await removeLike();
+    } else {
+      await addLike();
+    }
   };
 
   // Fetch like status when the component mounts or `postId`/`userId` changes
   useEffect(() => {
-      fetchLikeStatus();
-  }, [userId, postId]);
+    fetchLikeStatus();
+  }, [postId, userId]);
 
-  // Subscribe to Supabase Realtime updates for this post's like count
+  // Subscribe to Supabase Realtime updates for the likes table
   useEffect(() => {
-      const channel = supabase
-          .channel(`likes_update_${postId}`)
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts', filter: `post_id=eq.${postId}` }, (payload) => {
-              updateLike(postId, payload.new.like_count, liked);
-          })
-          .subscribe();
+    const channel = supabase
+      .channel(`likes_update_${postId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "likes",
+          filter: `post_id=eq.${postId}`,
+        },
+        (payload) => {
+          // Refresh like information on changes
+          fetchLikeStatus();
+        }
+      )
+      .subscribe();
 
-      return () => {
-          supabase.removeChannel(channel);
-      };
-  }, [postId, liked]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [postId]);
 
-  return { liked, likesCount, toggleLike };
+  return { liked, likesCount, toggleLike, likesFeed }; // Return likes feed
 };

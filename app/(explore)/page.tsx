@@ -22,8 +22,7 @@ export default function Home() {
         .from('posts')
         .select('*')
         .or('endDate.is.null,endDate.gte.' + new Date().toISOString().split('T')[0])
-        .order('created_at', { ascending: false })
-        .order('like_count', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         setError((error as PostgrestError).message);

@@ -9,7 +9,7 @@ import { useAuth } from 'app/context/AuthContext';
 
 const Toolbar: React.FC = () => { 
   const { user, logout } = useAuth(); 
-  const [userAvatar, setUserAvatar] = useState<string>('/account.svg'); // Default placeholder 
+  const [userAvatar, setUserAvatar] = useState<string>('avatar.png'); // Default placeholder 
   const [loading, setLoading] = useState<boolean>(true); // Track loading state 
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const { push } = useRouter(); 
@@ -28,7 +28,7 @@ const Toolbar: React.FC = () => {
 
       if (error || !data?.avatar_url_small) {         
         console.warn('Error fetching avatar:', error?.message || 'Avatar not found');         
-        return '/account.svg'; // Fallback to placeholder       
+        return 'avatar.png'; // Fallback to placeholder       
       }        
 
       const avatarUrl = data.avatar_url_small;       
@@ -36,7 +36,7 @@ const Toolbar: React.FC = () => {
       return avatarUrl;     
     } catch (err) {       
       console.error('Unexpected error fetching avatar:', err);       
-      return '/account.svg'; // Fallback to placeholder     
+      return 'avatar.png'; // Fallback to placeholder     
     }   
   };   
 
@@ -52,7 +52,7 @@ const Toolbar: React.FC = () => {
           setUserAvatar(avatar);         
         }       
       } else {         
-        setUserAvatar('/account.svg'); // Reset to placeholder if no user       
+        setUserAvatar('avatar.png'); // Reset to placeholder if no user       
       }       
       setLoading(false);     
     };      
@@ -130,7 +130,7 @@ const Toolbar: React.FC = () => {
             height={25}             
             className="rounded-full"             
             priority             
-            onError={() => setUserAvatar('/account.svg')} // Fallback if image fails to load           
+            onError={() => setUserAvatar('avatar.png')} // Fallback if image fails to load           
           />           
           <span className="ml-5 hidden md:inline">Profile</span>         
         </Link>       
@@ -154,7 +154,7 @@ const Toolbar: React.FC = () => {
       {/* Menu Button */}       
       <div className="md:mt-auto w-full relative">         
         {isMenuOpen && (           
-          <div className="absolute bottom-full mb-2 left-0 md:left-0 bg-white shadow-md rounded-lg w-full md:w-64">             
+          <div className="absolute bottom-full mb-2 right-0 bg-white shadow-md rounded-lg w-full min-w-[200px] md:w-64 md:left-0">         
             {user ? (               
               <a href="#" onClick={handleLogout} className="block p-4 hover:bg-gray-200 text-red-600">Log out</a>             
             ) : (               

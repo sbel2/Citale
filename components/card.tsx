@@ -73,8 +73,7 @@ const Card: React.FC<{ post: Post, managePost?: (manageType: string, postId: num
   // Handle the like functionality
   const { liked, likesCount, toggleLike } = useLike({
     postId: post?.post_id || 0,
-    userId: user?.id || "",
-    initialLikeCount: post?.like_count || 0,
+    userId: user?.id || ""
   });
 
   const handleLike = () => {

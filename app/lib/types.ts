@@ -7,7 +7,6 @@ export interface Post {
     mediaUrl: string[];
     mapUrl: string;
     thumbnailUrl: string;
-    like_count: number;
     created_at: string;
     category?: string;
     user_id?: string;

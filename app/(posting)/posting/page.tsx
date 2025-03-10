@@ -22,6 +22,7 @@ export default function SharePage() {
     const [isVideo, setIsVideo] = useState(false);
     const [videoType, setVideoType] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         post_id: postId,
         title: "",
@@ -96,6 +97,9 @@ export default function SharePage() {
 
 
     const handleSubmit = async () => {
+        if (loading) return;
+        setLoading(true);
+
         try {
             if (uploadedFiles.length === 0) {
                 alert("Please upload media.");
@@ -131,6 +135,8 @@ export default function SharePage() {
             router.push(`/account/profile/${user?.id}`); // ✅ Redirect to dynamic profile page
         } catch (err) {
             alert("There was an error submitting your post.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -176,11 +182,14 @@ export default function SharePage() {
                     <div className="w-full md:w-[70%] mt-6">
                         <ShareForm formData={formData} setFormData={setFormData} />
                         <button
-                            onClick={handleSubmit}
-                            className=" w-[20%] md:w-[10%] bg-red-600 text-white py-2 mt-4 rounded-md hover:bg-red-700 transition mt-8 mb-[128px]"
-                        >
-                            Post
-                        </button>
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className={`w-[20%] md:w-[10%] py-2 mt-4 rounded-md transition mt-8 mb-[128px] ${
+                            loading ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white"
+                        }`}
+                    >
+                        {loading ? "Posting..." : "Post"}
+                    </button>
                     </div>
                 </div>
             ) : (
@@ -193,9 +202,12 @@ export default function SharePage() {
                     <ShareForm formData={formData} setFormData={setFormData} />
                     <button
                         onClick={handleSubmit}
-                        className=" w-[20%] md:w-[10%] bg-red-600 text-white py-2 mt-4 rounded-md hover:bg-red-700 transition mt-8 mb-[128px]"
+                        disabled={loading}
+                        className={`w-[20%] md:w-[10%] py-2 mt-4 rounded-md transition mt-8 mb-[128px] ${
+                            loading ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white"
+                        }`}
                     >
-                        Post
+                        {loading ? "Posting..." : "Post"}
                     </button>
                 </div>
                 </div>

@@ -101,6 +101,29 @@ export default function ShareForm({ formData, setFormData }: {
                     </label>
                 ))}
 
+                {/* Map Input */}
+                <label className="block text-gray-700 font-sm mt-4">
+                        Add a map link for your friends!
+                        <input
+                            type="text"
+                            name="mapUrl"
+                            value={formData.mapUrl}
+                            onChange={handleInput}
+                            placeholder="Enter a search term for your location"
+                            className="w-full mt-3 p-2 border rounded-md focus:ring focus:ring-blue-300"
+                        />
+                </label>
+
+                {/* Live Map Preview (Only Renders After Debounce) */}
+                {debouncedMapUrl.trim() && (
+                            <div className="flex justify-end w-full h-40 items-center bg-white rounded-lg pt-4">
+                                <iframe
+                                    className="w-full h-36 border-none rounded-lg"
+                                    src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(debouncedMapUrl)}`}
+                                ></iframe>
+                            </div>
+                )}
+
                 <div 
                     className="mt-5 bg-gray-100 p-3 rounded-md cursor-pointer flex items-center justify-between"
                     onClick={() => setShowAdditionalInfo(!showAdditionalInfo)}
@@ -118,29 +141,6 @@ export default function ShareForm({ formData, setFormData }: {
 
                         {/* Date Input */}
                         <DatesInput onDateChange={handleDateInput} startDateInit={formData.startDate} endDateInit={formData.endDate} />
-
-                         {/* Map Input */}
-                        <label className="block text-gray-700 text-sm mt-4">
-                            Would you like to include a map for your friends?
-                            <input
-                                type="text"
-                                name="mapUrl"
-                                value={formData.mapUrl}
-                                onChange={handleInput}
-                                placeholder="Enter a search term for your location"
-                                className="w-full mt-3 p-2 border rounded-md focus:ring focus:ring-blue-300"
-                            />
-                        </label>
-
-                        {/* Live Map Preview (Only Renders After Debounce) */}
-                        {debouncedMapUrl.trim() && (
-                            <div className="flex justify-end w-full h-40 items-center bg-white rounded-lg pt-4">
-                                <iframe
-                                    className="w-full h-36 border-none rounded-lg"
-                                    src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(debouncedMapUrl)}`}
-                                ></iframe>
-                            </div>
-                        )}
                                 </div>
                             )}
 
