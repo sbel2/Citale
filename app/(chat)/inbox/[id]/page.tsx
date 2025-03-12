@@ -1,9 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from "next/navigation";
 import { supabase } from '@/app/lib/definitions'; // Ensure correct import
 import { useAuth } from 'app/context/AuthContext';
 import ChatInput from '@/components/TalebotChat';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Router } from 'lucide-react';
 
 interface ChatMessage {
   sender_id: string;
@@ -22,6 +26,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [submit, setSubmit] = useState(false)
   const previousMessagesRef = useRef<ChatMessage[]>([]);
+  const router = useRouter();
 
 
   const fetchChatMessages = async () => {
@@ -66,10 +71,10 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   const fetchProfile = async() =>{
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, avatar_url, full_name')
       .eq('id', userId)
       .single();
-      setUsername(data?.username || '');
+      setUsername(data?.full_name || data?.username || '');
       setAvatarUrl(data?.avatar_url || '');
   }
   
@@ -138,43 +143,66 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-      {user && messages.length > 0 &&(
-        messages.map((m, index) => (
-          <div key={index} className={`flex gap-3 max-w-3xl mx-auto ${m.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
-          {/* Display sender/receiver avatar */}
-          {m.sender_id !== user.id && (
-            <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-purple-600">
-              <img
-                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${avatarUrl}`}
-                alt="Profile Icon"             
-                width={40}             
-                height={40}             
-                className="rounded-full"             
-              />
-            </div>
-          )}
-        
-          {/* Message content */}
-          <div className="flex flex-col max-w-[70%]">
-            <div className="font-medium mb-1">
-              {m.sender_id === user.id ? 'You' : username}
-            </div>
-            <div className={`p-3 rounded-lg ${
-              m.sender_id === user.id ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'
-            }`}>
-              <div className="prose prose-base dark:prose-invert max-w-none">
-                {m.content}
+      <header className="shrink-0 border-b border-gray-200 bg-white">
+        <div className="mx-auto px-4 py-2 flex justify-between items-center">
+          <a href="/" aria-label="Go back home" className="text-gray-800 dark:text-white ml-1">
+            &#x2190; Home
+          </a>
+          <button className='font-bold' onClick={()=>router.push(`/account/profile/${userId}`)}>{username}</button>
+          <Link href="/" aria-label="Home" className="inline-block mt-1">
+            <Image
+              src="/citale_header.svg"
+              alt="Citale Logo"
+              width={90}
+              height={30}
+              priority
+            />
+          </Link>
+        </div>
+      </header>
+      <div className="flex-1 overflow-y-auto p-4 md:p-12 space-y-4">
+        <div className="flex flex-col h-[100dvh] bg-white">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+          {user && messages.length > 0 &&(
+            messages.map((m, index) => (
+              <div key={index} className={`flex gap-3 max-w-3xl mx-auto ${m.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
+              {/* Display sender/receiver avatar */}
+              {m.sender_id !== user.id && (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-purple-600">
+                  <button onClick={()=>router.push(`/account/profile/${userId}`)}>
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${avatarUrl}`}
+                      alt="Profile Icon"             
+                      width={40}             
+                      height={40}             
+                      className="rounded-full"             
+                    />
+                  </button>
+                </div>
+              )}
+            
+              {/* Message content */}
+              <div className="flex flex-col max-w-[70%]">
+                <div className="font-medium mb-1">
+                  {m.sender_id === user.id ? 'You' : username}
+                </div>
+                <div className={`p-3 rounded-lg ${
+                  m.sender_id === user.id ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'
+                }`}>
+                  <div className="prose prose-base dark:prose-invert max-w-none">
+                    {m.content}
+                  </div>
+                </div>
               </div>
             </div>
+            ))
+          )}
+          </div>
+          {/* Chat Input */}
+          <div className="text-center p-4">
+            <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
         </div>
-        ))
-      )}
-      </div>
-      {/* Chat Input */}
-      <div className="text-center p-4">
-        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
     </div>
   );
