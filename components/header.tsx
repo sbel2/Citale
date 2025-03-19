@@ -109,6 +109,7 @@ export default function Header({ font }: { font?: string }) {
       
       {!pathname.startsWith("/search-results") &&
         !pathname.startsWith("/account/profile/") &&
+        !pathname.startsWith("/following-post") &&
         !fromSearch &&
         !fromProfile && (
           <div className="w-full p-1">
