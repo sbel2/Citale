@@ -13,12 +13,17 @@ interface Post {
   user_id: string;
 }
 
+interface Profile {
+  username: string;
+  avatar_url: string;
+}
+
 interface Like {
   id: number;
   user_id: string;
   post_id: string;
   liked_at: string;
-  profiles: { username: string; avatar_url: string };
+  profiles: Profile;
 }
 
 const NotificationsPage = () => {
@@ -52,7 +57,14 @@ const NotificationsPage = () => {
             .in("post_id", postIds);
 
           if (likesError) throw likesError;
-          setLikes(userLikes?.reverse() || []);
+
+          // Ensure `profiles` is treated as a single object
+          const formattedLikes: Like[] = (userLikes || []).map(like => ({
+            ...like,
+            profiles: Array.isArray(like.profiles) ? like.profiles[0] : like.profiles
+          }));
+
+          setLikes(formattedLikes.reverse());
         }
       } catch (err) {
         console.error("Error fetching notifications:", err);
