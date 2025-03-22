@@ -109,6 +109,7 @@ const Toolbar: React.FC = () => {
         <span className="ml-5 hidden md:inline">Talebot</span>
       </button>
 
+      {/* Post Button */}
       <button onClick={() => {user ? push('/upload') : push('/log-in')}} className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/createpost' ? 'text-bold fill-black' : ''}`}>
           <Image
             src={["/upload", "/posting"].includes(pathname) ? "/plus_s.svg" : "/plus.svg"}
@@ -118,6 +119,21 @@ const Toolbar: React.FC = () => {
             priority
           />
         <span className="ml-5 hidden md:inline">Post</span>
+      </button>
+
+      {/* Notifications Button */}
+      <button
+        onClick={() => push('/notifications')}
+        className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/notifications' ? 'font-semibold' : ''}`}
+      >
+        <Image
+          src={pathname === '/notifications' ? "/placeholder.svg" : "/placeholder.svg"}
+          alt="Notifications Icon"
+          width={25}
+          height={25}
+          priority
+        />
+        <span className="ml-5 hidden md:inline">Notifications</span>
       </button>
 
       {/* Profile Button */}       
