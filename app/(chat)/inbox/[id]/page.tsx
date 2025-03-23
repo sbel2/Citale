@@ -147,7 +147,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
       <header className="shrink-0 border-b border-gray-200 bg-white overflow-hidden">
         <div className="mx-auto px-4 py-2 flex justify-between items-center">
           <a href="/inbox" aria-label="Go back home" className="text-gray-800 dark:text-white ml-1">
-            &#x2190; Back
+            &#x2190; Inbox
           </a>
           <button className="font-bold" onClick={() => router.push(`/account/profile/${userId}`)}>
             {username}

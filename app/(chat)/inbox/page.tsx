@@ -15,9 +15,13 @@ export default function Inbox() {
   }
 
   return (
-    <div className="border-t border-gray-200 p-6 pb-safe">
-      <h1 className="text-2xl font-bold mb-6">Inbox</h1>
-      <InboxPreview userId={user.id} />
+    <div className="min-h-screen bg-white">
+      <div className="bg-white">
+        <div className="bg-white">
+          <h1 className="text-2xl font-bold p-6 mb-4">Inbox</h1>
+        </div>
+        <InboxPreview userId={user.id} />
+      </div>
     </div>
   );
 }

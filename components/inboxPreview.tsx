@@ -85,16 +85,16 @@ const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div className="border-t border-gray-200 p-6 pb-safe">
-      <div className="space-y-4">
+    <div className="border-t bg-white">
+      <div className="space-y-0">
         {messengerDetails.map((user) => (
           <div
             key={user.id}
-            className="flex items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => router.push(`/inbox/${user.id}`)} // 點擊後跳轉到聊天頁面
+            className="flex items-center p-4 bg-white hover:bg-gray-200 transition-shadow cursor-pointer"
+            onClick={() => router.push(`/inbox/${user.id}`)} 
           >
             {/* user avatar */}
-            <div className="w-12 h-12 rounded-full overflow-hidden shrink-0">
+            <div className="transform translate-x-4 w-12 h-12 rounded-full overflow-hidden shrink-0">
               <Image
                 src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${user.avatar_url_small}` || `${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/avatar.png`} // 如果沒有頭像，使用預設頭像
                 alt={user.username}
@@ -105,7 +105,7 @@ const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
             </div>
 
             {/* username and message */}
-            <div className="ml-4 flex-1">
+            <div className="transform translate-x-4 ml-4 flex-1">
               <div className="font-medium text-gray-900">{user.username}</div>
               <div className="text-sm text-gray-500 truncate">{user.message}</div>
             </div>
