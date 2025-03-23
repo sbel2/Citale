@@ -14,6 +14,7 @@ export default function Header({ font }: { font?: string }) {
   const router = useRouter();
   const prevPathnameRef = useRef<string | null>(null);
   const [fromSearch, setFromSearch] = useState(false);
+  const [fromFollowPost, setFromFollowPost] = useState(false);
   const { user, logout } = useAuth();
   const [activeButton, setActiveButton] = useState<string>('explore');
   const [fromProfile, setFromProfile] = useState(false);
@@ -31,6 +32,13 @@ export default function Header({ font }: { font?: string }) {
       setFromProfile(true);
     } else {
       setFromProfile(false);
+    }
+
+    // Check if the previous pathname was "/following-post"
+    if (prevPathnameRef.current?.startsWith('/following-post')) {
+      setFromFollowPost(true);
+    } else {
+      setFromFollowPost(false);
     }
 
     // Update the ref with the current pathname
@@ -109,8 +117,10 @@ export default function Header({ font }: { font?: string }) {
       
       {!pathname.startsWith("/search-results") &&
         !pathname.startsWith("/account/profile/") &&
+        !pathname.startsWith("/following-post") &&
         !fromSearch &&
-        !fromProfile && (
+        !fromProfile &&
+        !fromFollowPost && (
           <div className="w-full p-1">
             <FilterButton onFilter={filterRoute} />
           </div>

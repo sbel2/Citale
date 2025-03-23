@@ -46,8 +46,8 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogClose className="fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-2 rounded-full cursor-pointer">
-        <X className="h-6 w-6" />
+      <DialogClose className="fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-2 rounded-full cursor-pointer z-50">
+        <X className="h-6 w-6 z-50" />
       </DialogClose>
     </DialogPrimitive.Content>
   </DialogPortal>
@@ -70,8 +70,8 @@ const DialogContentForFollow = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogClose className="fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-2 rounded-full cursor-pointer">
-        <X className="h-6 w-6" />
+      <DialogClose className="fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-2 rounded-full cursor-pointer z-50">
+        <X className="h-6 w-6 z-50" />
       </DialogClose>
     </DialogPrimitive.Content>
   </DialogPortal>

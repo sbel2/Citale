@@ -105,7 +105,7 @@ const Toolbar: React.FC = () => {
         onClick={() => push('/inbox')}
         className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
       >
-        <Image src={pathname === '/inbox' ? "/robot_s.svg" : "/robot.svg"} alt="Robot Icon" width={25} height={25} priority />
+        <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
         <span className="ml-5 hidden md:inline">Message</span>
       </button>
 

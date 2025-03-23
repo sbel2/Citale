@@ -6,7 +6,6 @@ import styles from "@/components/postComponent.module.css";
 import Image from 'next/image';
 import { IoIosMore } from 'react-icons/io';
 import { useRouter } from "next/navigation";
-import { comment } from "postcss";
 
 interface PostContentProps {
   post: Post;
@@ -60,11 +59,23 @@ const PostContent: React.FC<PostContentProps> = ({ post, comments, deleteComment
     }
   };
 
+  const componentDecorator = (href: string | undefined, text: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined, key: React.Key | null | undefined) => (
+    <a 
+      href={href} 
+      key={key} 
+      className="text-blue-500 underline hover:text-blue-700"
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      {text}
+    </a>
+  );
+
   return (
     <div className={`${styles.content} mt-8 mb-2`}>
       <h4 className="text-lg font-bold mb-4 text-black">{post.title}</h4>
       <div className={styles.preformattedtext}>
-        <Linkify>{post.description}</Linkify>
+        <Linkify componentDecorator={componentDecorator}>{post.description}</Linkify>
       </div>
 
       {address && (
