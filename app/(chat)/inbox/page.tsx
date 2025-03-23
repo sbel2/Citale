@@ -16,17 +16,19 @@ export default function Inbox() {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="shrink-0 border-b border-gray-200 bg-white overflow-hidden p-2">
-        <div className="mx-auto px-4 py-2 flex justify-between items-center">
-          <a href="/" aria-label="Go back home" className="text-gray-800 dark:text-white ml-1">
-            &#x2190; Home
-          </a>
-          <h1 className="text-xl font-bold sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 md:static md:left-auto md:transform-none">Inbox</h1>
-          <button onClick={() => router.push('/')}>Search</button>
-        </div>
-      </header>  
+    <header className="shrink-0 border-b border-gray-200 bg-white overflow-hidden p-2">
+      <div className="mx-auto px-4 py-2 flex justify-center relative">
+        <a
+          href="/"
+          aria-label="Go back home"
+          className="text-gray-800 dark:text-white absolute left-4"
+        >
+          &#x2190; Home
+        </a>
+        <h1 className="text-xl font-bold">Inbox</h1>
+      </div>
+    </header>
       <InboxPreview userId={user.id} />
     </div>
-
   );
 }

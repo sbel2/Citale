@@ -212,7 +212,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
       </div>
 
       {/* Chat Input Box (Fixed at the bottom) */}
-      <div className="sticky bottom-0 bg-white border-gray-200 p-4">
+      <div className="sticky bottom-0 bg-white border-gray-200 pb-[56px] md:pb-0">
         <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
     </div>
