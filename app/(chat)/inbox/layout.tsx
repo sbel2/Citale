@@ -1,4 +1,4 @@
-import '../globals.css';
+import '../../globals.css';
 import Toolbar from "@/components/toolbar";
 import { Inter } from "next/font/google";
 
@@ -17,7 +17,7 @@ export default function ChatLayout({
   return (
     <div className={`${inter.className} bg-gray-100 flex h-screen`}>
       {/* Toolbar - hidden on small screens, visible on large screens */}
-      <div className="hidden lg:block w-64">
+      <div className="lg:w-64">
         <Toolbar />
       </div>
 
