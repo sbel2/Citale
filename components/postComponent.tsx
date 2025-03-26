@@ -101,7 +101,7 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
               <button
                 className='fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-1 rounded-full flex items-center justify-center z-50'
                 style={{ width: "30px", height: "30px", lineHeight: "30px" }}
-                onClick={() => router.push('/')}
+                onClick={() => router.back()}
                 aria-label='Close Post'
               >
                 &#x2715;
