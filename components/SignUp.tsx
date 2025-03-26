@@ -11,6 +11,7 @@ const SignUpForm = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -22,6 +23,11 @@ const SignUpForm = () => {
 
     if (!email.endsWith('@bu.edu')) {
       setError('Only @bu.edu email addresses are allowed.');
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms of Use and Privacy Policy.');
       return;
     }
 
@@ -39,7 +45,6 @@ const SignUpForm = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 relative">
-      {/* Go Back Button */}
       <a
         href="/"
         aria-label="Go back home"
@@ -48,9 +53,7 @@ const SignUpForm = () => {
         &#x2190; Home
       </a>
 
-      {/* Form Container */}
       <div className="w-full h-full p-8 bg-white flex flex-col items-center justify-center md:h-[60%] md:w-[40%] rounded-lg md:border border-gray-200">
-        {/* Logo */}
         <Link href="/" aria-label="Home" className="inline-block mb-6">
           <Image
             src="/citale_header.svg"
@@ -61,7 +64,6 @@ const SignUpForm = () => {
           />
         </Link>
 
-        {/* Sign Up Form */}
         <h1 className="text-2xl font-semibold mb-4 text-gray-800 text-center">Create an Account</h1>
 
         {success && (
@@ -111,6 +113,23 @@ const SignUpForm = () => {
             Show Password
           </label>
 
+          {/* Terms and Privacy Checkbox */}
+          <label className="flex items-start gap-2 mb-4 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={() => setAgreedToTerms(!agreedToTerms)}
+              className="mt-1"
+              required
+            />
+            <span>
+              By continuing, you agree to our{' '}
+              <Link href="/terms" className="text-blue-600 underline" target='_blank'>Terms of Use</Link>{' '}
+              and{' '}
+              <Link href="/privacy-policy" className="text-blue-600 underline" target='_blank'>Privacy Policy</Link>.
+            </span>
+          </label>
+
           {password !== confirmPassword && confirmPassword.length > 0 && (
             <p className="text-red-600 text-sm mb-4 text-center">Passwords do not match</p>
           )}
@@ -120,9 +139,9 @@ const SignUpForm = () => {
               e.preventDefault();
               handleSignUp();
             }}
-            disabled={password !== confirmPassword}
+            disabled={!agreedToTerms || password !== confirmPassword}
             className={`p-2 text-white font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              password !== confirmPassword
+              !agreedToTerms || password !== confirmPassword
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-500 hover:bg-blue-600'
             }`}
@@ -134,7 +153,6 @@ const SignUpForm = () => {
             <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
           )}
 
-          {/* Login link */}
           <p className="mt-4 text-center">
             Already have an account?{' '}
             <Link href="/log-in" className="text-blue-600 hover:underline">

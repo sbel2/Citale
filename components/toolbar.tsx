@@ -161,15 +161,31 @@ const Toolbar: React.FC = () => {
               <Link href="/log-in" className="block p-4 hover:bg-gray-200 text-black-600">Log in</Link>             
             )}
 
-            {/* Help Button - Aligned to the left without any extra margin */}
             <Link
-              href="https://forms.gle/6Vmipb4uNuJekn7e8" // Replace with your Google Form link
+              href="https://forms.gle/75LFMRgoP2T9V1PS9" // Replace with your Google Form link
               className="block p-4 hover:bg-gray-200 text-black-600"
               target="_blank" 
               >
-              Help
-            </Link>           
-          </div>         
+              Report Content/User
+            </Link>
+
+            <Link
+              href="/support" // Replace with your Google Form link
+              className="block p-4 hover:bg-gray-200 text-black-600"
+              target="_blank" 
+              >
+              Customer Support
+            </Link>
+
+            <Link
+              href="/privacy-policy"
+              className="block p-4 hover:bg-gray-200 text-black"
+              target="_blank" 
+            >
+              Privacy Policy
+            </Link> 
+            <Link href="/terms" className="block p-4 hover:bg-gray-200 text-black" target="_blank"  >Terms of Use</Link>             
+          </div> 
         )}         
         <button           
           onClick={toggleMenu}           
