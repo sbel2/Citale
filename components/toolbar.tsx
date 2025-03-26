@@ -100,9 +100,9 @@ const Toolbar: React.FC = () => {
         <span className="ml-5 hidden md:inline">Home</span>       
       </button>        
 
-      {/* Talebot Button */}
+      {/* Chat Button */}
       <button
-        onClick={() => push('/inbox')}
+        onClick={() => push(user ? '/inbox' : '/log-in')}
         className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
       >
         <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
