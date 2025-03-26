@@ -124,7 +124,7 @@ const Toolbar: React.FC = () => {
       {/* Notifications Button */}
 {user ? (
   <button
-    onClick={() => push('/notifications')}
+    onClick={() => push(user? '/notifications':'/log-in')}
     className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/notifications' ? 'font-semibold' : ''}`}
   >
     <Image
