@@ -19,7 +19,7 @@ interface ChatMessage {
 interface UserDetails {
   id: string;
   username: string;
-  avatar_url_small: string;
+  avatar_url: string;
   message?: string;
 }
 
@@ -58,7 +58,7 @@ const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
         const otherUserId = message.sender_id === userId ? message.receiver_id : message.sender_id;
         const { data: userData, error: userError } = await supabase
           .from('profiles')
-          .select('id, username, avatar_url_small')
+          .select('id, username, avatar_url')
           .eq('id', otherUserId)
           .single();
 
@@ -96,7 +96,7 @@ const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
             {/* user avatar */}
             <div className="transform translate-x-4 w-12 h-12 rounded-full overflow-hidden shrink-0">
               <Image
-                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${user.avatar_url_small}` || `${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/avatar.png`} // 如果沒有頭像，使用預設頭像
+                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${user.avatar_url}` || `${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/avatar.png`} // 如果沒有頭像，使用預設頭像
                 alt={user.username}
                 width={48}
                 height={48}
