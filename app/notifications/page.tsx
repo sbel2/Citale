@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/definitions";
 import { useAuth } from "@/app/context/AuthContext";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { Router } from "lucide-react";
 
 interface Post {
   post_id: string;
@@ -43,6 +45,7 @@ const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
@@ -135,11 +138,11 @@ const NotificationsPage = () => {
                 </Link>
                 { "content" in notification ? (
                   <p className="text-sm text-gray-500">
-                    Commented on your post <span className="font-semibold">{post?.title || "a deleted post"}</span>: "{notification.content}" on {new Date(notification.comment_at).toLocaleDateString()}
+                    Commented on your post <button className="font-semibold" onClick={()=>router.push(`/post/${post?.post_id}`)}>{post?.title || "a deleted post"}</button>: "{notification.content}" on {new Date(notification.comment_at).toLocaleDateString()}
                   </p>
                 ) : (
                   <p className="text-sm text-gray-500">
-                    Liked your post <span className="font-semibold">{post?.title || "a deleted post"}</span> on {new Date(notification.liked_at).toLocaleDateString()}
+                    Liked your post <button className="font-semibold" onClick={()=>router.push(`/post/${post?.post_id}`)}>{post?.title || "a deleted post"}</button> on {new Date(notification.liked_at).toLocaleDateString()}
                   </p>
                 )}
               </div>
