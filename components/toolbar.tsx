@@ -12,6 +12,7 @@ const Toolbar: React.FC = () => {
   const [userAvatar, setUserAvatar] = useState<string>('avatar.png'); // Default placeholder 
   const [loading, setLoading] = useState<boolean>(true); // Track loading state 
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { push } = useRouter(); 
   const pathname = usePathname();   
 
@@ -85,6 +86,30 @@ const Toolbar: React.FC = () => {
     }   
   };     
 
+  useEffect(() => {
+    if (!user) {
+      setHasUnreadNotifications(false);
+      return;
+    }
+  
+    const checkUnreadNotifications = () => {
+      const storedReadStatus = localStorage.getItem('notificationReadStatus');
+      if (!storedReadStatus) return;
+      
+      const readStatusMap = JSON.parse(storedReadStatus);
+      const hasUnread = Object.values(readStatusMap).some(status => status === false);
+      setHasUnreadNotifications(hasUnread);
+    };
+  
+    // Check initially
+    checkUnreadNotifications();
+  
+    // Set up an interval to check periodically (every 5 minutes)
+    const interval = setInterval(checkUnreadNotifications, 300000);
+    
+    return () => clearInterval(interval);
+  }, [user]);
+
   return (     
     <nav className="bg-white text-black fixed md:top-0 md:left-0 md:h-full md:w-64 w-full bottom-0 h-16 flex md:flex-col items-start md:items-stretch shadow-md z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>       
       <Link href="/" aria-label="Home" className="pt-10 pl-8 pb-10 hidden md:inline">         
@@ -122,23 +147,28 @@ const Toolbar: React.FC = () => {
       </button>
 
       {/* Notifications Button */}
-{user ? (
+      {user ? (
   <button
-    onClick={() => push(user? '/notifications':'/log-in')}
+    onClick={() => push('/notifications')}
     className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/notifications' ? 'font-semibold' : ''}`}
   >
-    <Image
-      src={pathname === '/notifications' ? "/placeholder.svg" : "/placeholder.svg"}
-      alt="Notifications Icon"
-      width={25}
-      height={25}
-      priority
-    />
+    <div className="relative">
+      <Image
+        src={pathname === '/notifications' ? "/bell_s.svg" : "/bell.svg"}
+        alt="Notifications Icon"
+        width={25}
+        height={25}
+        priority
+      />
+      {hasUnreadNotifications && (
+        <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
+      )}
+    </div>
     <span className="ml-5 hidden md:inline">Notifications</span>
   </button>
 ) : (
   <Link href="/log-in" className="p-4 w-full flex justify-center md:justify-start items-center">
-    <Image src="/placeholder.svg" alt="Notifications Icon" width={25} height={25} priority />
+    <Image src="/bell.svg" alt="Notifications Icon" width={25} height={25} priority />
     <span className="ml-5 hidden md:inline">Notifications</span>
   </Link>
 )}
