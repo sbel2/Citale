@@ -127,12 +127,14 @@ const Toolbar: React.FC = () => {
       {/* Chat Button */}
       <button
         onClick={() => push(user ? '/inbox' : '/log-in')}
-        className={`relative p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
+        className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/inbox' ? 'font-semibold' : ''}`}
       >
-        <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
-        {hasUnreadMessage && (
-        <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
-        )}
+        <div className="relative">
+          <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
+          {hasUnreadMessage && (
+          <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
+          )}
+        </div>
         <span className="ml-5 hidden md:inline">Message</span>
       </button>
 
