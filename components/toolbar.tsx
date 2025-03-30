@@ -100,13 +100,13 @@ const Toolbar: React.FC = () => {
         <span className="ml-5 hidden md:inline">Home</span>       
       </button>        
 
-      {/* Talebot Button */}
+      {/* Chat Button */}
       <button
-        onClick={() => push('/talebot')}
+        onClick={() => push(user ? '/inbox' : '/log-in')}
         className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
       >
-        <Image src={pathname === '/talebot' ? "/robot_s.svg" : "/robot.svg"} alt="Robot Icon" width={25} height={25} priority />
-        <span className="ml-5 hidden md:inline">Talebot</span>
+        <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
+        <span className="ml-5 hidden md:inline">Message</span>
       </button>
 
       {/* Post Button */}
@@ -185,15 +185,31 @@ const Toolbar: React.FC = () => {
               <Link href="/log-in" className="block p-4 hover:bg-gray-200 text-black-600">Log in</Link>             
             )}
 
-            {/* Help Button - Aligned to the left without any extra margin */}
             <Link
-              href="https://forms.gle/6Vmipb4uNuJekn7e8" // Replace with your Google Form link
+              href="https://forms.gle/kfWJA5HCBMne8dND7" // Replace with your Google Form link
               className="block p-4 hover:bg-gray-200 text-black-600"
               target="_blank" 
               >
-              Help
-            </Link>           
-          </div>         
+              Report Content/User
+            </Link>
+
+            <Link
+              href="/support" // Replace with your Google Form link
+              className="block p-4 hover:bg-gray-200 text-black-600"
+              target="_blank" 
+              >
+              Customer Support
+            </Link>
+
+            <Link
+              href="/privacy-policy"
+              className="block p-4 hover:bg-gray-200 text-black"
+              target="_blank" 
+            >
+              Privacy Policy
+            </Link> 
+            <Link href="/terms" className="block p-4 hover:bg-gray-200 text-black" target="_blank"  >Terms of Use</Link>             
+          </div> 
         )}         
         <button           
           onClick={toggleMenu}           

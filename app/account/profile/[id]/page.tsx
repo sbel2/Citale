@@ -316,8 +316,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 >   
                                 {following ? 'Unfollow' : 'Follow'}
                                 </button>
+                                
                             )}
-                            
+                            {user && user.id !== userId && (
+                            <button
+                                onClick={() => router.push(`/inbox/${userId}`)}
+                                className="px-2 py-1.5 text-xs border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                                >   
+                                Message
+                            </button>
+                            )}
                         </div>
     
                         <div className="text-gray-500 text-sm mb-4">

@@ -4,24 +4,48 @@ import { useState } from 'react';
 import { signUpUser } from 'app/actions/auth';
 import Link from 'next/link';
 import Image from 'next/image';
-import { createClient } from '@/supabase/client';
 
 const SignUpForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const supabase = createClient();
 
   const handleSignUp = async () => {
     setError(null);
     setSuccess(false);
 
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!username.trim()) {
+      setError('Please enter a username.');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter a password.');
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError('Please confirm your password.');
+      return;
+    }
+
     if (!email.endsWith('@bu.edu')) {
       setError('Only @bu.edu email addresses are allowed.');
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms of Use and Privacy Policy.');
       return;
     }
 
@@ -39,7 +63,6 @@ const SignUpForm = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 relative">
-      {/* Go Back Button */}
       <a
         href="/"
         aria-label="Go back home"
@@ -48,9 +71,7 @@ const SignUpForm = () => {
         &#x2190; Home
       </a>
 
-      {/* Form Container */}
       <div className="w-full h-full p-8 bg-white flex flex-col items-center justify-center md:h-[60%] md:w-[40%] rounded-lg md:border border-gray-200">
-        {/* Logo */}
         <Link href="/" aria-label="Home" className="inline-block mb-6">
           <Image
             src="/citale_header.svg"
@@ -61,7 +82,6 @@ const SignUpForm = () => {
           />
         </Link>
 
-        {/* Sign Up Form */}
         <h1 className="text-2xl font-semibold mb-4 text-gray-800 text-center">Create an Account</h1>
 
         {success && (
@@ -70,59 +90,98 @@ const SignUpForm = () => {
           </p>
         )}
 
-        <form className="w-full flex flex-col">
+        <form className="w-full flex flex-col" autoComplete="on">
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             placeholder="Email (Boston University Emails Only)"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
             className="p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
           <input
             type="text"
+            name="username"
+            autoComplete="username"
             placeholder="Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              if (error) setError(null);
+            }}
             className="p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
           <input
             type={showPassword ? 'text' : 'password'}
+            name="new-password"
+            autoComplete="new-password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
             className="p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
           <input
             type={showPassword ? 'text' : 'password'}
+            name="confirm-password"
+            autoComplete="new-password"
             placeholder="Confirm Password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (error) setError(null);
+            }}
             className="p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
 
-          {/* Show Password Checkbox */}
+          {/* Show Password Toggle */}
           <label className="flex items-center mb-4 text-sm text-gray-600">
             <input
               type="checkbox"
               checked={showPassword}
-              onChange={() => setShowPassword(!showPassword)}
+              onChange={() => {
+                setShowPassword(!showPassword);
+                if (error) setError(null);
+              }}
               className="mr-2"
             />
             Show Password
           </label>
 
-          {password !== confirmPassword && confirmPassword.length > 0 && (
-            <p className="text-red-600 text-sm mb-4 text-center">Passwords do not match</p>
-          )}
+          {/* Terms and Privacy Checkbox */}
+          <label className="flex items-start gap-2 mb-4 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={() => {
+                setAgreedToTerms(!agreedToTerms);
+                if (error) setError(null);
+              }}
+              className="mt-1"
+              required
+            />
+            <span>
+              By continuing, you agree to our{' '}
+              <Link href="/terms" className="text-blue-600 underline">Terms of Use</Link>{' '}
+              and{' '}
+              <Link href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</Link>.
+            </span>
+          </label>
 
           <button
             onClick={(e) => {
               e.preventDefault();
               handleSignUp();
             }}
-            disabled={password !== confirmPassword}
+            disabled={!agreedToTerms || password !== confirmPassword && confirmPassword.length > 0}
             className={`p-2 text-white font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              password !== confirmPassword
+              !agreedToTerms || password !== confirmPassword && confirmPassword.length > 0
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-500 hover:bg-blue-600'
             }`}
@@ -130,11 +189,14 @@ const SignUpForm = () => {
             Sign Up
           </button>
 
+           {password !== confirmPassword && confirmPassword.length > 0 && (
+            <p className="mt-4 text-sm text-red-600 text-center">Passwords do not match</p>
+          )}
+
           {error && (
             <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
           )}
 
-          {/* Login link */}
           <p className="mt-4 text-center">
             Already have an account?{' '}
             <Link href="/log-in" className="text-blue-600 hover:underline">

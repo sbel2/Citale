@@ -1,4 +1,5 @@
 import { createClient } from '@/supabase/client';
+import { RealtimeChannel } from '@supabase/realtime-js';
 
 export const supabase = createClient();
 

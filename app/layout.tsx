@@ -1,7 +1,6 @@
 import { AuthProvider } from 'app/context/AuthContext'; // Adjust the path to where your AuthProvider is located
-import Script from 'next/script';
-import posthog from 'posthog-js'
 import { PostHogProvider } from './providers.jsx'
+import 'app/globals.css'
 
 export const metadata = {
   title: "Things to do in Boston",
