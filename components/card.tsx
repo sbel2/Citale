@@ -140,6 +140,11 @@ const Card: React.FC<{ post: Post, managePost?: (manageType: string, postId: num
           <div>
             <div className="cursor-pointer">
               <div onClick={handleClick} className={styles["image-container"]}>
+                {post.is_deal && (
+                  <div className="absolute top-3 right-3 bg-[#fd0000] text-white text-sm font-bold px-3 py-1 rounded-lg shadow-lg z-10">
+                  DEAL
+                  </div>
+                )}
                 {post.is_video ? (
                   <>
                     <video

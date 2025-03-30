@@ -12,6 +12,7 @@ export interface Post {
     user_id?: string;
     post_action: string;
     favorite_count: number;
+    is_deal: boolean;
   }
   
   export interface UserProfile {
