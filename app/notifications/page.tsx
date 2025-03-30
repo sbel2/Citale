@@ -245,8 +245,8 @@ const markAllAsUnread = () => {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-0 py-4">
+      <div className="flex justify-between items-center px-4 py-2 mb-4 p-2">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
         {/*DEBUG FEATURE START*/}
