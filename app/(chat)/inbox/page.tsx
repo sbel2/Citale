@@ -15,7 +15,7 @@ export default function Inbox() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-[100dvh] bg-white">
     <header className="shrink-0 border-b border-gray-200 bg-white overflow-hidden p-2">
       <div className="mx-auto px-4 py-2 flex justify-center relative">
         <a
