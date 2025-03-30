@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +15,7 @@ const Toolbar: React.FC = () => {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { push } = useRouter(); 
   const pathname = usePathname();   
+  const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);   
 
@@ -84,7 +85,30 @@ const Toolbar: React.FC = () => {
     } else {       
       push("/"); // Navigate to home page if on a different page     
     }   
-  };     
+  };
+  
+  
+  useEffect(() => {
+    console.log('Checking for unread messages...');
+    const checkUnreadMessages = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('chats')
+          .select('is_read')
+          .eq('receiver_id', user.id)
+          .eq('is_read', false)
+        if (error) {
+          console.error('Error fetching unread messages:', error.message);
+          return;
+        }
+        if (data && data.length > 0) {
+        setHasUnreadMessage(true);
+        }
+      }
+    };
+    checkUnreadMessages();
+  }, [user]); // Add user as a dependency to re-run when user changes
+
 
   useEffect(() => {
     if (!user) {
@@ -128,9 +152,12 @@ const Toolbar: React.FC = () => {
       {/* Chat Button */}
       <button
         onClick={() => push(user ? '/inbox' : '/log-in')}
-        className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
+        className={`relative p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
       >
         <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
+        {hasUnreadMessage && (
+        <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
+        )}
         <span className="ml-5 hidden md:inline">Message</span>
       </button>
 
