@@ -16,7 +16,7 @@ export default function NotificationLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className={`${inter.className} bg-white flex h-screen`}>
+        <div className={`${inter.className} bg-white flex`}>
             {/* Sidebar */}
             <div className="md:w-64">
                 <Toolbar />
@@ -24,7 +24,7 @@ export default function NotificationLayout({
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
-                <main className="flex-1 p-4 bg-gray-951">
+                <main className="w-full">
                     {children}
                 </main>
             </div>
