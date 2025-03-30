@@ -193,12 +193,14 @@ const markAllAsUnread = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
+        {/*DEBUG FEATURE START*/}
           <button 
             onClick={markAllAsUnread}
             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
           >
             Mark All as Unread
           </button>
+          {/*DEBUG FEATURE STOP*/}
           {!allRead && ( // Only show Mark All as Read button when there are unread notifications
             <button 
               onClick={markAllAsRead}
@@ -249,6 +251,7 @@ const markAllAsUnread = () => {
                     >
                       {notification.profiles.username}
                     </Link>
+                    {/*DEBUG FEATURE START*/}
                     {notification.read && (
                       <button
                         onClick={(e) => {
@@ -260,6 +263,7 @@ const markAllAsUnread = () => {
                         Mark Unread
                       </button>
                     )}
+                    {/*DEBUG FEATURE STOP*/}
                   </div>
                   <div className="text-sm text-gray-500">
                     { "content" in notification ? (
