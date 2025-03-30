@@ -142,7 +142,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-white overflow-hidden">
       {/* Header (Fixed at the top) */}
       <header className="shrink-0 border-b border-gray-200 bg-white overflow-hidden">
         <div className="mx-auto px-4 py-2 flex justify-between items-center">
