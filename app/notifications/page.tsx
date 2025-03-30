@@ -338,31 +338,31 @@ const markAllAsUnread = () => {
                     {/*DEBUG FEATURE STOP*/}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {'content' in notification ? (
-                      <p>
-                        Commented on your post{" "}
-                        <span className="font-semibold hover:underline">
-                          {post?.title || "a deleted post"}
-                        </span>
-                        : "{notification.content}" on {new Date(notification.comment_at).toLocaleDateString()}
-                      </p>
-                    ) : 'comment_id' in notification ? (
-                      <p>
-                        Liked your comment "{notification.comment?.content || 'a deleted comment'}" on post{" "}
-                        <span className="font-semibold hover:underline">
-                          {post?.title || "a deleted post"}
-                        </span>{" "}
-                        on {new Date(notification.liked_at).toLocaleDateString()}
-                      </p>
-                    ) : (
-                      <p>
-                        Liked your post{" "}
-                        <span className="font-semibold hover:underline">
-                          {post?.title || "a deleted post"}
-                        </span>{" "}
-                        on {new Date(notification.liked_at).toLocaleDateString()}
-                      </p>
-                    )}
+                  {'content' in notification ? (
+                    <p>
+                      Commented on your post{' '}
+                      <span className="font-semibold hover:underline">
+                        {post?.title || 'a deleted post'}
+                      </span>
+                      : &quot;{notification.content}&quot; on {new Date(notification.comment_at).toLocaleDateString()}
+                    </p>
+                  ) : 'comment_id' in notification ? (
+                    <p>
+                      Liked your comment &quot;{notification.comment?.content || 'a deleted comment'}&quot; on post{' '}
+                      <span className="font-semibold hover:underline">
+                        {post?.title || 'a deleted post'}
+                      </span>{' '}
+                      on {new Date(notification.liked_at).toLocaleDateString()}
+                    </p>
+                  ) : (
+                    <p>
+                      Liked your post{' '}
+                      <span className="font-semibold hover:underline">
+                        {post?.title || 'a deleted post'}
+                      </span>{' '}
+                      on {new Date(notification.liked_at).toLocaleDateString()}
+                    </p>
+                  )}
                   </div>
                 </div>
               </div>
