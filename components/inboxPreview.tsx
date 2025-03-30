@@ -21,6 +21,7 @@ interface UserDetails {
   username: string;
   avatar_url: string;
   message?: string;
+  unread_count?: number;
 }
 
 const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
@@ -80,28 +81,75 @@ const InboxPreview: React.FC<InboxPreviewProps> = ({ userId }) => {
     }
   };
 
+  const handleUnreadMessages = async () => {
+    const { data, error } = await supabase
+      .from('chats')
+      .select('sender_id, is_read')
+      .eq('receiver_id', userId)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('Error fetching unread messages:', error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      // Count unread messages per sender
+      const unreadCounts = data.reduce((acc: Record<string, number>, message) => {
+        acc[message.sender_id] = (acc[message.sender_id] || 0) + 1;
+        return acc;
+      }, {});
+      setMessengerDetails((prevDetails) =>
+        prevDetails.map((user) => {
+          const unreadCount = unreadCounts[user.id] || 0; // 確保鍵匹配
+          return {
+            ...user,
+            unread_count: unreadCount,
+          };
+        })
+      );
+    } else {
+      console.log('No unread messages found.');
+    }
+  }
+
   useEffect(() => {
-    handleDisplayMessage();
+    const fetchData = async () => {
+      await handleDisplayMessage();
+      await handleUnreadMessages();
+    };
+  
+    fetchData();
   }, [userId]);
 
   return (
     <div className="border-t bg-white">
       <div className="space-y-0">
         {messengerDetails.map((user) => (
+          console.log(user),
           <div
             key={user.id}
             className="flex items-center p-4 bg-white hover:bg-gray-200 transition-shadow cursor-pointer"
             onClick={() => router.push(`/inbox/${user.id}`)} 
           >
-            {/* user avatar */}
-            <div className="transform translate-x-4 w-12 h-12 rounded-full overflow-hidden shrink-0">
+            <div className="relative w-12 h-12 shrink-0">
+            {/* Avatar */}
+            <div className="w-full h-full rounded-full overflow-hidden">
               <Image
-                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${user.avatar_url}` || `${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/avatar.png`} // 如果沒有頭像，使用預設頭像
+                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${user.avatar_url}` || `${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/avatar.png`}
                 alt={user.username}
                 width={48}
                 height={48}
                 className="object-cover"
               />
+            </div>
+
+            {/* Red dot with unread count */}
+            {(user.unread_count || 0) > 0 && (
+              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {user.unread_count}
+              </div>
+            )}
             </div>
 
             {/* username and message */}
