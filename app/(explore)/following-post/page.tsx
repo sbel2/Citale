@@ -56,7 +56,7 @@ export default function FollowingPosts() {
 
       const { data, error } = await supabase
         .from('posts')
-        .select('post_id, title, description, is_video, mediaUrl, mapUrl, thumbnailUrl, user_id, created_at, post_action, favorite_count')
+        .select('post_id, title, description, is_video, mediaUrl, mapUrl, thumbnailUrl, user_id, created_at, post_action, favorite_count, is_deal')
         .in('user_id', userIds)
         .order('created_at', { ascending: false })
 
