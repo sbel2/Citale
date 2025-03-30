@@ -61,6 +61,9 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
 
   useEffect(() => {
     setComments(initialComments);
+    console.log(window.history.length)
+    console.log(window.location.origin)
+    console.log(document.referrer)
   }, [initialComments]);
 
   return (
@@ -97,16 +100,24 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
           />
           </div>
         </div>
-        {context === 'static' && (
+        {/* {context === 'static' && (
+          
               <button
                 className='fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-1 rounded-full flex items-center justify-center z-50'
                 style={{ width: "30px", height: "30px", lineHeight: "30px" }}
-                onClick={() => router.push('/')}
+                onClick={() => {
+                  const isSameOrigin = document.referrer.startsWith(window.location.origin);
+                  if (isSameOrigin) {
+                    router.back();
+                  } else {
+                    router.push('/');
+                  }
+                }}
                 aria-label='Close Post'
               >
                 &#x2715;
               </button>
-            )}
+            )} */}
     </>
   );
 };
