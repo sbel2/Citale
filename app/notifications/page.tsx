@@ -39,7 +39,20 @@ interface Like {
   read: boolean;
 }
 
-type Notification = Comment | Like;
+interface CommentLike {
+  id: number;
+  user_id: string;
+  comment_id: number;
+  liked_at: string;
+  profiles: Profile;
+  read: boolean;
+  comment?: {
+    content: string;
+    post_id: string;
+  };
+}
+
+type Notification = Comment | Like | CommentLike;
 
 const NotificationsPage = () => {
   const { user } = useAuth();
@@ -99,20 +112,63 @@ const NotificationsPage = () => {
             read: readStatusMap[like.id] || false
           }));
 
-          const mergedNotifications: Notification[] = [...formattedComments, ...formattedLikes]
-            .sort((a, b) => new Date("comment_at" in a ? a.comment_at : a.liked_at).getTime() -
-                             new Date("comment_at" in b ? b.comment_at : b.liked_at).getTime())
-            .reverse();
+          const { data: userCommentsData, error: userCommentsError } = await supabase
+            .from("comments")
+            .select("id")
+            .eq("user_id", user.id);
 
-          setNotifications(mergedNotifications);
-        }
-      } catch (err) {
-        console.error("Error fetching notifications:", err);
-        setError("Failed to load notifications.");
-      } finally {
-        setLoading(false);
-      }
-    };
+          if (userCommentsError) throw userCommentsError;
+
+          let formattedCommentLikes: CommentLike[] = [];
+          
+          if (userCommentsData?.length) {
+            const commentIds = userCommentsData.map(comment => comment.id);
+            
+            // Fetch commentlikes
+            const { data: commentLikes, error: commentLikesError } = await supabase
+              .from("comment_likes")
+              .select("id, user_id, comment_id, liked_at, profiles (username, avatar_url)")
+              .in("comment_id", commentIds)
+              .order("liked_at", { ascending: false });
+
+            if (commentLikesError) throw commentLikesError;
+
+            // Fetch the comment that have corresponding commentlikes to get their post_id and content
+            const { data: likedComments, error: likedCommentsError } = await supabase
+              .from("comments")
+              .select("id, content, post_id")
+              .in("id", commentLikes.map(cl => cl.comment_id));
+
+            if (likedCommentsError) throw likedCommentsError;
+
+            formattedCommentLikes = (commentLikes || []).map(commentLike => {
+              const comment = likedComments?.find(c => c.id === commentLike.comment_id);
+              return {
+                ...commentLike,
+                profiles: Array.isArray(commentLike.profiles) ? commentLike.profiles[0] : commentLike.profiles,
+                read: readStatusMap[commentLike.id] || false,
+                comment: comment ? {
+                  content: comment.content,
+                  post_id: comment.post_id
+                } : undefined
+              };
+            });
+          }
+
+          const mergedNotifications: Notification[] = [...formattedComments, ...formattedLikes, ...formattedCommentLikes]
+        .sort((a, b) => new Date("comment_at" in a ? a.comment_at : a.liked_at).getTime() -
+                         new Date("comment_at" in b ? b.comment_at : b.liked_at).getTime())
+        .reverse();
+
+      setNotifications(mergedNotifications);
+    }
+  } catch (err) {
+    console.error("Error fetching notifications:", err);
+    setError("Failed to load notifications.");
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchNotifications();
   }, [user]);
@@ -194,12 +250,12 @@ const markAllAsUnread = () => {
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
         {/*DEBUG FEATURE START*/}
-          <button 
+          {/* <button 
             onClick={markAllAsUnread}
             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
           >
             Mark All as Unread
-          </button>
+          </button> */}
           {/*DEBUG FEATURE STOP*/}
           {!allRead && ( // Only show Mark All as Read button when there are unread notifications
             <button 
@@ -217,7 +273,12 @@ const markAllAsUnread = () => {
       ) : (
         <div>
           {notifications.map((notification, index) => {
-            const post = posts.find((p) => p.post_id === notification.post_id);
+            const post = posts.find((p) => 
+              'comment_id' in notification 
+                ? p.post_id === notification.comment?.post_id 
+                : p.post_id === notification.post_id
+            );
+            
             return (
               <div 
                 key={notification.id} 
@@ -237,22 +298,33 @@ const markAllAsUnread = () => {
                     <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full"></div>
                   )}
                 </div>
-                <div 
-                  className={`flex-grow p-3 cursor-pointer ${
-                    index > 0 && !notifications[index - 1].read ? 'border-t border-gray-100' : ''
-                  }`}
-                  onClick={() => handleNotificationClick(notification.id, notification.post_id)}
-                >
+                <div className={`flex-grow p-3 cursor-pointer ${
+                      index > 0 && !notifications[index - 1].read ? 'border-t border-gray-100' : ''
+                    }`}
+                    onClick={() => {
+                      let postId = '';
+                      if ('comment_id' in notification) {
+                        // For comment likes, get post_id from the associated comment
+                        postId = notification.comment?.post_id || '';
+                      } else {
+                        // For comments and likes, use the direct post_id
+                        postId = notification.post_id;
+                      }
+                      if (postId) {
+                        handleNotificationClick(notification.id, postId);
+                      }
+                    }}
+                  >
                   <div className="flex justify-between items-start">
-                    <Link 
-                      href={`/account/profile/${notification.user_id}`} 
-                      className="font-semibold hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {notification.profiles.username}
-                    </Link>
+                  <Link 
+                    href={`/account/profile/${notification.user_id}`} 
+                    className="font-semibold hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {notification.profiles.username}
+                  </Link>
                     {/*DEBUG FEATURE START*/}
-                    {notification.read && (
+                    {/* {notification.read && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -262,17 +334,25 @@ const markAllAsUnread = () => {
                       >
                         Mark Unread
                       </button>
-                    )}
+                    )} */}
                     {/*DEBUG FEATURE STOP*/}
                   </div>
                   <div className="text-sm text-gray-500">
-                    { "content" in notification ? (
+                    {'content' in notification ? (
                       <p>
                         Commented on your post{" "}
                         <span className="font-semibold hover:underline">
                           {post?.title || "a deleted post"}
                         </span>
                         : "{notification.content}" on {new Date(notification.comment_at).toLocaleDateString()}
+                      </p>
+                    ) : 'comment_id' in notification ? (
+                      <p>
+                        Liked your comment "{notification.comment?.content || 'a deleted comment'}" on post{" "}
+                        <span className="font-semibold hover:underline">
+                          {post?.title || "a deleted post"}
+                        </span>{" "}
+                        on {new Date(notification.liked_at).toLocaleDateString()}
                       </p>
                     ) : (
                       <p>
