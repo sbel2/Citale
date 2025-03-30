@@ -45,6 +45,13 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
         .eq('sender_id', userId)
         .order('sent_at', { ascending: false });
 
+      // set as read after fetching
+      const { data: readData, error: readError } = await supabase
+        .from('chats')
+        .update({ is_read: true })
+        .eq('receiver_id', user.id)
+        .eq('sender_id', userId)
+
       if (sentError || receivedError) {
         console.error('Error fetching chat messages:', sentError || receivedError);
         return;
