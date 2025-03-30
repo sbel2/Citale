@@ -177,7 +177,7 @@ export default function PrivateChat({ params }: { params: { id: string } }) {
             >
               {/* Display sender/receiver avatar */}
               {m.sender_id !== user.id && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-red-100 text-purple-600">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-purple-600">
                   <button onClick={() => router.push(`/account/profile/${userId}`)}>
                     <img
                       src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/profile-pic/${avatarUrl}`}
