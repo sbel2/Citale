@@ -59,6 +59,9 @@ const Search = () => {
 
   return (
     <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
+      <div className="max-w-[100rem] px-3 md:px-6 mx-auto flex items-center">
+        
+      </div>
       <div className={styles.container}>
       {posts.length === 0 ? (
         <p className="text-center">No posts found :) </p>
