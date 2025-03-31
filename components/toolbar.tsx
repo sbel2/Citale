@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,8 +12,10 @@ const Toolbar: React.FC = () => {
   const [userAvatar, setUserAvatar] = useState<string>('avatar.png'); // Default placeholder 
   const [loading, setLoading] = useState<boolean>(true); // Track loading state 
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { push } = useRouter(); 
   const pathname = usePathname();   
+  const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);   
 
@@ -83,7 +85,54 @@ const Toolbar: React.FC = () => {
     } else {       
       push("/"); // Navigate to home page if on a different page     
     }   
-  };     
+  };
+  
+  
+  useEffect(() => {
+    console.log('Checking for unread messages...');
+    const checkUnreadMessages = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('chats')
+          .select('is_read')
+          .eq('receiver_id', user.id)
+          .eq('is_read', false)
+        if (error) {
+          console.error('Error fetching unread messages:', error.message);
+          return;
+        }
+        if (data && data.length > 0) {
+        setHasUnreadMessage(true);
+        }
+      }
+    };
+    checkUnreadMessages();
+  }, [user]); // Add user as a dependency to re-run when user changes
+
+
+  useEffect(() => {
+    if (!user) {
+      setHasUnreadNotifications(false);
+      return;
+    }
+  
+    const checkUnreadNotifications = () => {
+      const storedReadStatus = localStorage.getItem('notificationReadStatus');
+      if (!storedReadStatus) return;
+      
+      const readStatusMap = JSON.parse(storedReadStatus);
+      const hasUnread = Object.values(readStatusMap).some(status => status === false);
+      setHasUnreadNotifications(hasUnread);
+    };
+  
+    // Check initially
+    checkUnreadNotifications();
+  
+    // Set up an interval to check periodically (every 5 minutes)
+    const interval = setInterval(checkUnreadNotifications, 300000);
+    
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (     
     <nav className="bg-white text-black fixed md:top-0 md:left-0 md:h-full md:w-64 w-full bottom-0 h-16 flex md:flex-col items-start md:items-stretch shadow-md z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>       
@@ -103,12 +152,18 @@ const Toolbar: React.FC = () => {
       {/* Chat Button */}
       <button
         onClick={() => push(user ? '/inbox' : '/log-in')}
-        className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/talebot' ? 'font-semibold' : ''}`}
+        className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/inbox' ? 'font-semibold' : ''}`}
       >
-        <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
+        <div className="relative">
+          <Image src={pathname === '/inbox' ? "/chat_s.svg" : "/chat.svg"} alt="Chat Icon" width={25} height={25} priority />
+          {hasUnreadMessage && (
+          <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
+          )}
+        </div>
         <span className="ml-5 hidden md:inline">Message</span>
       </button>
 
+      {/* Post Button */}
       <button onClick={() => {user ? push('/upload') : push('/log-in')}} className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/createpost' ? 'text-bold fill-black' : ''}`}>
           <Image
             src={["/upload", "/posting"].includes(pathname) ? "/plus_s.svg" : "/plus.svg"}
@@ -119,6 +174,34 @@ const Toolbar: React.FC = () => {
           />
         <span className="ml-5 hidden md:inline">Post</span>
       </button>
+
+      {/* Notifications Button */}
+      {user ? (
+  <button
+    onClick={() => push('/notifications')}
+    className={`p-4 w-full flex justify-center md:justify-start items-center md:hover:bg-gray-200 focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 transition-all ${pathname === '/notifications' ? 'font-semibold' : ''}`}
+  >
+    <div className="relative">
+      <Image
+        src={pathname === '/notifications' ? "/bell_s.svg" : "/bell.svg"}
+        alt="Notifications Icon"
+        width={25}
+        height={25}
+        priority
+      />
+      {hasUnreadNotifications && (
+        <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></div>
+      )}
+    </div>
+    <span className="ml-5 hidden md:inline">Notifications</span>
+  </button>
+) : (
+  <Link href="/log-in" className="p-4 w-full flex justify-center md:justify-start items-center">
+    <Image src="/bell.svg" alt="Notifications Icon" width={25} height={25} priority />
+    <span className="ml-5 hidden md:inline">Notifications</span>
+  </Link>
+)}
+
 
       {/* Profile Button */}       
       {user ? (         
