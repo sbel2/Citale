@@ -175,7 +175,13 @@ const Card: React.FC<{ post: Post, managePost?: (manageType: string, postId: num
                 <div className={styles["overlay"]}></div>
               </div>
               <div className=" flex justify-between items-center px-2 pt-3">
-                <div className="text-xs sm:text-sm text-black">{post.title}</div>
+                <div 
+                  onClick={handleClick} 
+                  className="text-xs sm:text-sm text-black cursor-pointer"
+                >
+                  {post.title}
+                </div>
+
                 {(post.user_id == user?.id) && (pathname == `/account/profile/${user?.id}`) && ( //ADDS more button if it's your post on your profile which can be used to edit/delete/archive posts
                       <button
                       className="pl-1 pr-1 focus:outline-none w-8 min-w-[32px] h-5"
