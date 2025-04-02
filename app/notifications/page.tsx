@@ -127,6 +127,7 @@ const markAllAsRead = async () => {
       prev.map(n => unreadNotifications.some(un => un.id === n.id) ? { ...n, is_read: false } : n)
     );
   }
+  window.location.reload(); 
 };
 
 const markAllAsUnread = async () => {
@@ -190,6 +191,7 @@ const markAllAsUnread = async () => {
     // Revert on error
     setNotifications(prev => prev);
   }
+  window.location.reload(); 
 };
 
 const handleNotificationClick = async (notification: Notification, postId: string) => {
@@ -410,7 +412,7 @@ const handleNotificationClick = async (notification: Notification, postId: strin
 
   const allRead = notifications.length > 0 && notifications.every(n => n.is_read);
 
-  if (loading && notifications.length === 0) return <div className="p-4">Loading notifications...</div>;
+  if (loading && notifications.length === 0) return;
   if (error) return <p className="p-4">Error: {error}</p>;
 
   return (
