@@ -81,6 +81,32 @@ const Search = () => {
   return (
     <main className="min-h-screen mx-auto max-w-[100rem] overflow-x-hidden">
       <div className="max-w-[100rem] px-3 md:px-6 mx-auto flex items-center">
+      <button
+          className={`p-4 text-base md:text-lg w-full flex justify-center items-center focus:outline-none transition-all rounded-lg relative ${
+            activeButton === 'posts'
+              ? '' // Expand the underline
+              : 'text-gray-300' // Hide the underline
+          }`}
+          onClick={() => handleButtonClick('posts')}
+          >
+          Posts
+          {activeButton === 'posts' && (
+            <div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 border-t-4 border-black'></div>
+          )}
+        </button>
+        <button
+          className={`p-4 text-base md:text-lg w-full flex justify-center items-center focus:outline-none transition-all rounded-lg relative ${
+            activeButton === 'users'
+              ? '' // Expand the underline
+              : 'text-gray-300' // Hide the underline
+          }`}
+          onClick={() => handleButtonClick('users')}
+          >
+          Users
+          {activeButton === 'users' && (
+            <div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 border-t-4 border-black '></div>
+          )}
+        </button>
       </div>
       <div className={styles.container}>
       {activeButton === 'posts' && posts.length === 0 ? (
