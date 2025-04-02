@@ -87,6 +87,7 @@ const Toolbar: React.FC = () => {
       push("/"); // Navigate to home page if on a different page     
     }   
   };
+
   useEffect(() => {
     console.log('Checking for unread messages...');
     const checkUnreadMessages = async () => {
@@ -103,9 +104,25 @@ const Toolbar: React.FC = () => {
         if (data && data.length > 0) {
         setHasUnreadMessage(true);
         }
+        else{
+          setHasUnreadMessage(false);
+        }
       }
     };
     checkUnreadMessages();
+
+    if (user) {
+      // Fetch messages immediately
+      checkUnreadMessages();
+
+      // Set up polling every 2 seconds
+      const interval = setInterval(checkUnreadMessages, 10000);
+
+      // Clean up the interval on unmount
+      return () => {
+        clearInterval(interval);
+      };
+    }
   }, [user]); // Add user as a dependency to re-run when user changes
 
 
