@@ -87,8 +87,6 @@ const Toolbar: React.FC = () => {
       push("/"); // Navigate to home page if on a different page     
     }   
   };
-  
-  
   useEffect(() => {
     console.log('Checking for unread messages...');
     const checkUnreadMessages = async () => {

@@ -139,9 +139,9 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
   };
 
   const FilterDropdown = ({ category, selected, options }: { category: string; selected: string; options: string[] }) => (
-    <div className="relative mx-2 md:mx-4">
+    <div className="relative mx-2 md:mx-4 z-20">
       <button
-        className={`flex items-center justify-center w-25 md:w-32 px-3 py-2.5 text-center text-xs md:text-sm rounded-full transition-colors 
+        className={`flex items-center justify-center z-10 w-25 md:w-32 px-3 py-2.5 text-center text-xs md:text-sm rounded-full transition-colors 
           ${selected !== 'All' ? 'bg-gray-500 text-white' : 'bg-gray-200 hover:bg-gray-300'} 
           gap-1 md:gap-3`}
         onClick={() => toggleDropdown(category)}
@@ -152,13 +152,13 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
       </button>
       {dropdownOpen === category && (
         <div
-        className="absolute top-14 left-0 right-0 bg-white rounded drop-shadow-2xl shadow-2xl z-10 overflow-y-auto max-h-48"
+        className="absolute top-14 left-0 right-0 bg-white rounded drop-shadow-2xl shadow-2xl z-10 overflow-y-auto max-h-48 z-10"
           ref={dropdownRefs[category as keyof typeof dropdownRefs]}
         >
           {options.map((option) => (
             <div
               key={option}
-              className="px-3 py-2.5 cursor-pointer hover:bg-gray-100 text-xs md:text-sm"
+              className="px-3 py-2.5 cursor-pointer hover:bg-gray-100 text-xs md:text-sm z-10"
               onClick={() => {
                 handleFilterChange(
                   category === 'Activity' ? option : filterActivities,
@@ -179,7 +179,7 @@ const FilterButton: React.FC<FilterProps> = ({ onFilter }) => {
 
 
   return (
-    <div className="bg-white flex justify-center items-center pt-5 pb-z2">
+    <div className="bg-white flex justify-center items-center pt-5 pb-2 z-15">
       <FilterDropdown category="Activity" selected={filterActivities} options={categories.Activity} />
       <FilterDropdown category="Location" selected={filterLocations} options={categories.Location} />
       <FilterDropdown category="Price" selected={filterPrice} options={categories.Price} />

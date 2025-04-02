@@ -417,7 +417,7 @@ const handleNotificationClick = async (notification: Notification, postId: strin
 
   return (
     <div className="p-0 py-4">
-      <div className="flex justify-between items-center px-4 py-2 mb-4">
+      <div className="flex justify-between items-center px-4 py-2 mb-4 p-2">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
           {/* <button 

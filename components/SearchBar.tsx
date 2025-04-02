@@ -40,7 +40,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     <form onSubmit={handleSearchSubmit} style={styles.form}>
       <input
         type="text"
-        placeholder="Search..."
+        placeholder="Search posts or user..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         aria-label="Search posts"

@@ -18,4 +18,7 @@ export interface Post {
   export interface UserProfile {
     username: string;
     avatar_url: string;
+    id: string;
+    full_name: string;
+    bio: string;
   }
