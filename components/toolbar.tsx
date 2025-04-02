@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from 'app/context/AuthContext';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 const Toolbar: React.FC = () => { 
   const { user, logout } = useAuth(); 
@@ -110,29 +111,127 @@ const Toolbar: React.FC = () => {
   }, [user]); // Add user as a dependency to re-run when user changes
 
 
-  useEffect(() => {
-    if (!user) {
+  // In your Toolbar component
+// In Toolbar component
+useEffect(() => {
+  if (!user) {
+    setHasUnreadNotifications(false);
+    return;
+  }
+
+  const checkUnreadNotifications = async () => {
+    try {
+      // Get user's post IDs
+      const { data: userPosts } = await supabase
+        .from("posts")
+        .select("post_id")
+        .eq("user_id", user.id);
+      const postIds = userPosts?.map(p => p.post_id) || [];
+
+      // Get user's comment IDs
+      const { data: userComments } = await supabase
+        .from("comments")
+        .select("id")
+        .eq("user_id", user.id);
+      const commentIds = userComments?.map(c => c.id) || [];
+
+      // Check for unread comments on user's posts
+      const { count: unreadCommentsCount } = await supabase
+        .from("comments")
+        .select("*", { count: 'exact', head: true })
+        .in("post_id", postIds)
+        .eq("is_read", false)
+        .neq("user_id", user.id);
+
+      // Check for unread likes on user's posts
+      const { count: unreadLikesCount } = await supabase
+        .from("likes")
+        .select("*", { count: 'exact', head: true })
+        .in("post_id", postIds)
+        .eq("is_read", false)
+        .neq("user_id", user.id);
+
+      // Check for unread comment likes on user's comments
+      const { count: unreadCommentLikesCount } = await supabase
+        .from("comment_likes")
+        .select("*", { count: 'exact', head: true })
+        .in("comment_id", commentIds)
+        .eq("is_read", false)
+        .neq("user_id", user.id);
+
+      setHasUnreadNotifications(
+        (unreadCommentsCount || 0) > 0 ||
+        (unreadLikesCount || 0) > 0 ||
+        (unreadCommentLikesCount || 0) > 0
+      );
+    } catch (error) {
+      console.error('Error checking unread notifications:', error);
       setHasUnreadNotifications(false);
-      return;
     }
+  };
+
+  // Check initially
+  checkUnreadNotifications();
+
+  // Set up real-time subscriptions
+  let dbChannel: RealtimeChannel;
+  let updatesChannel: RealtimeChannel;
   
-    const checkUnreadNotifications = () => {
-      const storedReadStatus = localStorage.getItem('notificationReadStatus');
-      if (!storedReadStatus) return;
-      
-      const readStatusMap = JSON.parse(storedReadStatus);
-      const hasUnread = Object.values(readStatusMap).some(status => status === false);
-      setHasUnreadNotifications(hasUnread);
-    };
+  if (user) {
+    // Channel for database changes
+    dbChannel = supabase
+      .channel('unread-notifications-db')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `is_read=eq.false`
+        },
+        () => checkUnreadNotifications()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'likes',
+          filter: `is_read=eq.false`
+        },
+        () => checkUnreadNotifications()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comment_likes',
+          filter: `is_read=eq.false`
+        },
+        () => checkUnreadNotifications()
+      )
+      .subscribe();
+
+    // Channel for component updates
+    updatesChannel = supabase.channel('unread-notifications-updates')
+      .on(
+        'broadcast',
+        { event: 'notifications-updated' },
+        () => checkUnreadNotifications()
+      )
+      .subscribe();
+  }
+
+  // Set up an interval to check periodically (every 5 minutes)
+  const interval = setInterval(checkUnreadNotifications, 300000);
   
-    // Check initially
-    checkUnreadNotifications();
-  
-    // Set up an interval to check periodically (every 5 minutes)
-    const interval = setInterval(checkUnreadNotifications, 300000);
-    
-    return () => clearInterval(interval);
-  }, [user]);
+  return () => {
+    clearInterval(interval);
+    if (dbChannel) supabase.removeChannel(dbChannel);
+    if (updatesChannel) supabase.removeChannel(updatesChannel);
+  };
+}, [user]);
 
   return (     
     <nav className="bg-white text-black fixed md:top-0 md:left-0 md:h-full md:w-64 w-full bottom-0 h-16 flex md:flex-col items-start md:items-stretch shadow-md z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>       

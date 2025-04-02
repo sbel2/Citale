@@ -63,149 +63,174 @@ const NotificationsPage = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const markAllAsRead = async () => {
-    const unreadNotifications = notifications.filter(n => !n.is_read);
-    if (unreadNotifications.length === 0) return;
+  // In your NotificationsPage component
+const markAllAsRead = async () => {
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  if (unreadNotifications.length === 0) return;
 
-    // Optimistic update
-    setNotifications(prev => 
-      prev.map(n => !n.is_read ? { ...n, is_read: true } : n)
-    );
+  // Optimistic update
+  setNotifications(prev => 
+    prev.map(n => !n.is_read ? { ...n, is_read: true } : n)
+  );
 
-    // Group updates by type
-    const updates = {
-      comments: [] as number[],
-      likes: [] as number[],
-      comment_likes: [] as number[]
-    };
+  // Group updates by type
+  const updates = {
+    comments: [] as number[],
+    likes: [] as number[],
+    comment_likes: [] as number[]
+  };
 
-    unreadNotifications.forEach(notif => {
-      if ('content' in notif) updates.comments.push(notif.id);
-      else if ('comment_id' in notif) updates.comment_likes.push(notif.id);
-      else updates.likes.push(notif.id);
-    });
+  unreadNotifications.forEach(notif => {
+    if ('content' in notif) updates.comments.push(notif.id);
+    else if ('comment_id' in notif) updates.comment_likes.push(notif.id);
+    else updates.likes.push(notif.id);
+  });
 
-    // Execute updates
-    try {
-      const promises = [];
-      
-      if (updates.comments.length > 0) {
-        promises.push(
-          supabase.from('comments')
-            .update({ is_read: true })
-            .in('id', updates.comments)
-        );
-      }
-      
-      if (updates.likes.length > 0) {
-        promises.push(
-          supabase.from('likes')
-            .update({ is_read: true })
-            .in('id', updates.likes)
-        );
-      }
-      
-      if (updates.comment_likes.length > 0) {
-        promises.push(
-          supabase.from('comment_likes')
-            .update({ is_read: true })
-            .in('id', updates.comment_likes)
-        );
-      }
-
-      await Promise.all(promises);
-    } catch (err) {
-      // Revert on error
-      setNotifications(prev => 
-        prev.map(n => unreadNotifications.some(un => un.id === n.id) ? { ...n, is_read: false } : n)
+  try {
+    const promises = [];
+    
+    if (updates.comments.length > 0) {
+      promises.push(
+        supabase.from('comments')
+          .update({ is_read: true })
+          .in('id', updates.comments)
       );
     }
-  };
-
-  const markAllAsUnread = async () => {
-    const readNotifications = notifications.filter(n => n.is_read);
-    if (readNotifications.length === 0) return;
-
-    // Optimistic update
-    setNotifications(prev => 
-      prev.map(n => n.is_read ? { ...n, is_read: false } : n)
-    );
-
-    // Group updates by type
-    const updates = {
-      comments: [] as number[],
-      likes: [] as number[],
-      comment_likes: [] as number[]
-    };
-
-    readNotifications.forEach(notif => {
-      if ('content' in notif) updates.comments.push(notif.id);
-      else if ('comment_id' in notif) updates.comment_likes.push(notif.id);
-      else updates.likes.push(notif.id);
-    });
-
-    // Execute updates
-    try {
-      const promises = [];
-      
-      if (updates.comments.length > 0) {
-        promises.push(
-          supabase.from('comments')
-            .update({ is_read: false })
-            .in('id', updates.comments)
-        );
-      }
-      
-      if (updates.likes.length > 0) {
-        promises.push(
-          supabase.from('likes')
-            .update({ is_read: false })
-            .in('id', updates.likes)
-        );
-      }
-      
-      if (updates.comment_likes.length > 0) {
-        promises.push(
-          supabase.from('comment_likes')
-            .update({ is_read: false })
-            .in('id', updates.comment_likes)
-        );
-      }
-
-      await Promise.all(promises);
-    } catch (err) {
-      // Revert on error
-      setNotifications(prev => prev);
+    
+    if (updates.likes.length > 0) {
+      promises.push(
+        supabase.from('likes')
+          .update({ is_read: true })
+          .in('id', updates.likes)
+      );
     }
-  };
+    
+    if (updates.comment_likes.length > 0) {
+      promises.push(
+        supabase.from('comment_likes')
+          .update({ is_read: true })
+          .in('id', updates.comment_likes)
+      );
+    }
 
-  const handleNotificationClick = (notification: Notification, postId: string) => {
-    // Immediate UI update
+    await Promise.all(promises);
+    
+    // Broadcast the update to all components
+    await supabase.channel('notification-updates').send({
+      type: 'broadcast',
+      event: 'notifications-updated',
+      payload: { action: 'mark-read' }
+    });
+  } catch (err) {
+    // Revert on error
     setNotifications(prev => 
-      prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+      prev.map(n => unreadNotifications.some(un => un.id === n.id) ? { ...n, is_read: false } : n)
     );
+  }
+};
 
-    // Determine table
-    const table = 'content' in notification ? 'comments' :
-                 'comment_id' in notification ? 'comment_likes' :
-                 'likes';
+const markAllAsUnread = async () => {
+  const readNotifications = notifications.filter(n => n.is_read);
+  if (readNotifications.length === 0) return;
 
-    // Update in background
-    supabase.from(table)
-      .update({ is_read: true })
-      .eq('id', notification.id)
-      .then(({ error }) => {
-        if (error) {
-          // Revert if failed
-          setNotifications(prev =>
-            prev.map(n => n.id === notification.id ? { ...n, is_read: false } : n)
-          );
-        }
-      });
+  // Optimistic update
+  setNotifications(prev => 
+    prev.map(n => n.is_read ? { ...n, is_read: false } : n)
+  );
 
-    // Navigate
-    router.push(`/post/${postId}`);
+  // Group updates by type
+  const updates = {
+    comments: [] as number[],
+    likes: [] as number[],
+    comment_likes: [] as number[]
   };
+
+  readNotifications.forEach(notif => {
+    if ('content' in notif) updates.comments.push(notif.id);
+    else if ('comment_id' in notif) updates.comment_likes.push(notif.id);
+    else updates.likes.push(notif.id);
+  });
+
+  try {
+    const promises = [];
+    
+    if (updates.comments.length > 0) {
+      promises.push(
+        supabase.from('comments')
+          .update({ is_read: false })
+          .in('id', updates.comments)
+      );
+    }
+    
+    if (updates.likes.length > 0) {
+      promises.push(
+        supabase.from('likes')
+          .update({ is_read: false })
+          .in('id', updates.likes)
+      );
+    }
+    
+    if (updates.comment_likes.length > 0) {
+      promises.push(
+        supabase.from('comment_likes')
+          .update({ is_read: false })
+          .in('id', updates.comment_likes)
+      );
+    }
+
+    await Promise.all(promises);
+    
+    // Broadcast the update to all components
+    await supabase.channel('notification-updates').send({
+      type: 'broadcast',
+      event: 'notifications-updated',
+      payload: { action: 'mark-unread' }
+    });
+  } catch (err) {
+    // Revert on error
+    setNotifications(prev => prev);
+  }
+};
+
+const handleNotificationClick = async (notification: Notification, postId: string) => {
+  // Immediate UI update
+  setNotifications(prev => 
+    prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+  );
+
+  // Determine table
+  const table = 'content' in notification ? 'comments' :
+               'comment_id' in notification ? 'comment_likes' :
+               'likes';
+
+  try {
+    const { error } = await supabase.from(table)
+      .update({ is_read: true })
+      .eq('id', notification.id);
+
+    if (!error) {
+      // Broadcast the update
+      await supabase.channel('notification-updates').send({
+        type: 'broadcast',
+        event: 'notifications-updated',
+        payload: { action: 'single-read', id: notification.id }
+      });
+    } else {
+      // Revert if failed
+      setNotifications(prev =>
+        prev.map(n => n.id === notification.id ? { ...n, is_read: false } : n)
+      );
+    }
+  } catch (err) {
+    // Revert on error
+    setNotifications(prev =>
+      prev.map(n => n.id === notification.id ? { ...n, is_read: false } : n)
+    );
+  }
+
+  // Navigate
+  router.push(`/post/${postId}`);
+};
 
   useEffect(() => {
     if (!user) return;
@@ -393,12 +418,12 @@ const NotificationsPage = () => {
       <div className="flex justify-between items-center px-4 py-2 mb-4">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
-          <button 
+          {/* <button 
             onClick={markAllAsUnread}
             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
           >
             Mark All as Unread
-          </button>
+          </button> */}
           {!allRead && notifications.length > 0 && (
             <button 
               onClick={markAllAsRead}
