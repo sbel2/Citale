@@ -116,7 +116,7 @@ const Toolbar: React.FC = () => {
       checkUnreadMessages();
 
       // Set up polling every 2 seconds
-      const interval = setInterval(checkUnreadMessages, 10000);
+      const interval = setInterval(checkUnreadMessages, 2000);
 
       // Clean up the interval on unmount
       return () => {
