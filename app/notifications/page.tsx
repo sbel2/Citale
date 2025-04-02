@@ -420,12 +420,12 @@ const handleNotificationClick = async (notification: Notification, postId: strin
       <div className="flex justify-between items-center px-4 py-2 mb-4 p-2">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <div className="flex space-x-2">
-          {/* <button 
+          <button 
             onClick={markAllAsUnread}
             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
           >
             Mark All as Unread
-          </button> */}
+          </button>
           {!allRead && notifications.length > 0 && (
             <button 
               onClick={markAllAsRead}
