@@ -64,83 +64,107 @@ const NotificationsPage = () => {
 
   useEffect(() => {
     if (!user) return;
-
+  
     const fetchNotifications = async () => {
       setLoading(true);
       try {
         const storedReadStatus = localStorage.getItem('notificationReadStatus');
         const readStatusMap = storedReadStatus ? JSON.parse(storedReadStatus) : {};
-
+  
+        // 1. First get all posts where user has commented (to find posts where comments might be liked)
+        const { data: userCommentedPosts, error: commentedPostsError } = await supabase
+          .from("comments")
+          .select("post_id")
+          .eq("user_id", user.id);
+  
+        if (commentedPostsError) throw commentedPostsError;
+  
+        // 2. Get posts created by the user (for regular likes and comments)
         const { data: userPosts, error: postsError } = await supabase
           .from("posts")
           .select("post_id, title, created_at, user_id")
           .eq("user_id", user.id);
-
+  
         if (postsError) throw postsError;
-        setPosts(userPosts || []);
-
-        if (userPosts?.length) {
-          const postIds = userPosts.map((post) => post.post_id);
-
-          // Fetch comments
+  
+        // Combine all post IDs we need to track (both user's posts and posts they commented on)
+        const allPostIds = [
+          ...new Set([
+            ...(userPosts?.map(p => p.post_id) || []),
+            ...(userCommentedPosts?.map(c => c.post_id) || [])
+          ])
+        ];
+  
+        // Fetch complete details for all relevant posts
+        const { data: allPosts, error: allPostsError } = await supabase
+          .from("posts")
+          .select("post_id, title, created_at, user_id")
+          .in("post_id", allPostIds);
+  
+        if (allPostsError) throw allPostsError;
+        setPosts(allPosts || []);
+  
+        if (allPostIds.length) {
+          // Fetch comments on user's posts
           const { data: userComments, error: commentsError } = await supabase
             .from("comments")
             .select("id, content, comment_at, user_id, post_id, profiles (username, avatar_url)")
-            .in("post_id", postIds)
+            .in("post_id", allPostIds)
             .order("comment_at", { ascending: false });
-
+  
           if (commentsError) throw commentsError;
-
+  
           const formattedComments: Comment[] = (userComments || []).map(comment => ({
             ...comment,
             profiles: Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles,
             read: readStatusMap[comment.id] || false
           }));
-
-          // Fetch likes
+  
+          // Fetch likes on user's posts
           const { data: userLikes, error: likesError } = await supabase
             .from("likes")
             .select("id, user_id, post_id, liked_at, profiles (username, avatar_url)")
-            .in("post_id", postIds)
+            .in("post_id", allPostIds)
             .order("liked_at", { ascending: false });
-
+  
           if (likesError) throw likesError;
-
+  
           const formattedLikes: Like[] = (userLikes || []).map(like => ({
             ...like,
             profiles: Array.isArray(like.profiles) ? like.profiles[0] : like.profiles,
             read: readStatusMap[like.id] || false
           }));
-
+  
+          // Get all comments by the user (for comment likes)
           const { data: userCommentsData, error: userCommentsError } = await supabase
             .from("comments")
-            .select("id")
+            .select("id, post_id")
             .eq("user_id", user.id);
-
+  
           if (userCommentsError) throw userCommentsError;
-
+  
           let formattedCommentLikes: CommentLike[] = [];
           
           if (userCommentsData?.length) {
             const commentIds = userCommentsData.map(comment => comment.id);
             
-            // Fetch commentlikes
+            // Fetch comment likes
             const { data: commentLikes, error: commentLikesError } = await supabase
               .from("comment_likes")
               .select("id, user_id, comment_id, liked_at, profiles (username, avatar_url)")
               .in("comment_id", commentIds)
               .order("liked_at", { ascending: false });
-
+  
             if (commentLikesError) throw commentLikesError;
-
-            // Fetch the comment that have corresponding commentlikes to get their post_id and content
+  
+            // Fetch the comments that have corresponding comment likes
             const { data: likedComments, error: likedCommentsError } = await supabase
               .from("comments")
               .select("id, content, post_id")
               .in("id", commentLikes.map(cl => cl.comment_id));
-
+  
             if (likedCommentsError) throw likedCommentsError;
-
+  
             formattedCommentLikes = (commentLikes || []).map(commentLike => {
               const comment = likedComments?.find(c => c.id === commentLike.comment_id);
               return {
@@ -154,22 +178,22 @@ const NotificationsPage = () => {
               };
             });
           }
-
+  
           const mergedNotifications: Notification[] = [...formattedComments, ...formattedLikes, ...formattedCommentLikes]
-        .sort((a, b) => new Date("comment_at" in a ? a.comment_at : a.liked_at).getTime() -
-                         new Date("comment_at" in b ? b.comment_at : b.liked_at).getTime())
-        .reverse();
-
-      setNotifications(mergedNotifications);
-    }
-  } catch (err) {
-    console.error("Error fetching notifications:", err);
-    setError("Failed to load notifications.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+            .sort((a, b) => new Date("comment_at" in a ? a.comment_at : a.liked_at).getTime() -
+                            new Date("comment_at" in b ? b.comment_at : b.liked_at).getTime())
+            .reverse();
+  
+          setNotifications(mergedNotifications);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        setError("Failed to load notifications.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
     fetchNotifications();
   }, [user]);
 
