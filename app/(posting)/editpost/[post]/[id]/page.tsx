@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "app/context/AuthContext";
 import ShareForm from "@/components/share/shareForm";
+import ImagePreview from "@/components/share/imagePreview";
+import { uploadFilesToBucket } from 'app/lib/fileUtils';
 import { useMedia } from "app/context/MediaContext";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
@@ -67,6 +69,11 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
 
     useEffect (() => {
         fetchPrevData();
+        const transformedMediaUrls = formData.mediaUrl.map((url) => {
+            const { name, type } = extractNameAndType(url);
+            return { name, type };
+        });
+        setUploadedFiles(transformedMediaUrls);
     },[post_id])
 
     const handleUpdatePost = async () => {
@@ -98,6 +105,13 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
         } catch (err) {
             alert("There was an error submitting your post.");
         }
+    };
+
+    const extractNameAndType = (mediaUrl: string) => {
+        const parts = mediaUrl.split('.');
+        const name = parts.slice(0, -1).join('.'); // Get everything except the last part
+        const type = parts[parts.length - 1]; // Get the last part as the file extension
+        return { name, type };
     };
 
     return (
@@ -153,23 +167,8 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
           ) : (
             <div className="flex flex-col items-start">
                 <div className="justify-left flex flex-col items-start mt-10">
-                    <div className="grid grid-cols-3 md:grid-cols-4 gap-4 p-1 md:p-4 bg-gray-100 rounded-md">
-                        {/* 📌 Image Preview Grid */}
-                        {formData.mediaUrl?.map((file, index) => (
-                            <div
-                                key={index} // Add a unique key for each image
-                                className="relative w-24 h-24 md:w-36 md:h-36 rounded-lg overflow-hidden shadow-md border"
-                            >
-                                <Image
-                                src={`${process.env.NEXT_PUBLIC_IMAGE_CDN}/${postTable}/images/${file}`}
-                                alt={`post image ${index + 1}`}
-                                layout="fill"
-                                objectFit="cover"
-                                className="rounded-lg"
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    <p className="text-lg font-lg text-left mb-2">Image editing</p>
+                    <ImagePreview filesUpload={uploadedFiles} onFilesChange={setUploadedFiles} />
                 </div>
                 <div className="w-full mt-6">
                 <ShareForm formData={formData} setFormData={setFormData} />
