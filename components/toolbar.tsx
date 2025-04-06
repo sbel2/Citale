@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
 import Link from "next/link";
@@ -349,7 +349,7 @@ useEffect(() => {
       )}        
 
       {/* Menu Button */}       
-      <div className="md:mt-auto w-full relative">         
+      <div className="hidden md:block md:mt-auto w-full relative">   
         {isMenuOpen && (           
           <div className="absolute bottom-full mb-2 right-0 bg-white shadow-md rounded-lg w-full min-w-[200px] md:w-64 md:left-0">         
             {user ? (               
