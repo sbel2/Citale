@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "app/context/AuthContext";
 import ShareForm from "@/components/share/shareForm";
+import { useMedia } from "app/context/MediaContext";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +13,7 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
     const { post: postType, id: post_id } = params;
     const postTable = postType == "post" ? "posts" : postType == "draft" ? "drafts" : "";
     const { user } = useAuth();
+    const { uploadedFiles, setUploadedFiles } = useMedia();
     const router = useRouter();
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [isVideo, setIsVideo] = useState(false);

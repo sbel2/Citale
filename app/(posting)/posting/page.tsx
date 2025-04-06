@@ -16,7 +16,6 @@ export default function SharePage() {
     const { uploadedFiles, setUploadedFiles } = useMedia();
     const { user } = useAuth();
     const router = useRouter();
-    
     const [postId, setPostId] = useState<string>("");
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [isVideo, setIsVideo] = useState(false);

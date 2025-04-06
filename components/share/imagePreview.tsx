@@ -100,7 +100,11 @@ const ImagePreview = ({
     }
   };
 
-  const handleImageDelete = (index: number) => {
+  const handleImageDelete = (files:FileItem[], index: number) => {
+    if (files.length <= 1){
+      alert("You must have at least one image.");
+      return;
+    }
     setFiles((prevFiles) => {
       const updatedFiles = [...prevFiles];
       updatedFiles.splice(index, 1);
@@ -146,7 +150,7 @@ const ImagePreview = ({
         
             {/* Close Button */}
             <button
-              onClick={() => handleImageDelete(index)}
+              onClick={() => handleImageDelete(files, index)}
               className="absolute top-1 right-1 bg-gray-600 bg-opacity-50 text-white w-6 h-6 rounded-full flex items-center justify-center z-50 hover:bg-gray-700"
             >
               &#x2715;
