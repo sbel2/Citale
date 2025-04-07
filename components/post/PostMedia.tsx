@@ -103,10 +103,10 @@ const PostMedia: React.FC<PostMediaProps> = ({ post }) => {
       ref={containerRef}
       className={post.is_video ? styles.videocontainer : styles.imagecontainer}
       style={{
-        // Only apply dynamic height on mobile
-        ...(window.innerWidth < 768 && {
-          height: `${dimensions.height}px`
-        })
+        // Apply dynamic height only for images on mobile
+        ...(typeof window !== 'undefined' && !post.is_video && window.innerWidth < 768 && {
+          height: `${dimensions.height}px`,
+        }),
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
