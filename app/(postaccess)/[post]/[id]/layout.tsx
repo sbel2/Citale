@@ -10,9 +10,9 @@ export default function PostLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${inter.className} bg-white flex h-screen`}>
+    <div className={`${inter.className} bg-white flex`}>
       {/* Toolbar - hidden on small screens, visible on large screens */}
-      <div className="md:block w-64">
+      <div className="hidden md:block w-64">
         <Toolbar />
       </div>
 

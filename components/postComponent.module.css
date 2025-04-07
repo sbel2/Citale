@@ -49,10 +49,10 @@
     @media (max-width: 768px) {
       .imagecontainer {
         width: 100%;
-        height: 300px; /* Adjusted height if necessary */
+        /* height: 300px; */
         position: relative; /* Adjust if necessary */
-        top: 75px; /* Set top to the height of the header */
-        margin-bottom: 70px; /* Bottom margin equal to the footer height */
+        top: 75px;
+        margin-bottom: 70px;
         overflow: hidden;
       }
 
