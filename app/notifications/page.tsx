@@ -127,7 +127,6 @@ const markAllAsRead = async () => {
       prev.map(n => unreadNotifications.some(un => un.id === n.id) ? { ...n, is_read: false } : n)
     );
   }
-  window.location.reload(); 
 };
 
 const markAllAsUnread = async () => {
@@ -191,7 +190,6 @@ const markAllAsUnread = async () => {
     // Revert on error
     setNotifications(prev => prev);
   }
-  window.location.reload(); 
 };
 
 const handleNotificationClick = async (notification: Notification, postId: string) => {

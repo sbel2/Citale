@@ -195,7 +195,7 @@ useEffect(() => {
   if (user) {
     // Channel for database changes
     dbChannel = supabase
-      .channel('unread-notifications-db')
+      .channel('notification-updates')
       .on(
         'postgres_changes',
         {
@@ -229,7 +229,7 @@ useEffect(() => {
       .subscribe();
 
     // Channel for component updates
-    updatesChannel = supabase.channel('unread-notifications-updates')
+    updatesChannel = supabase.channel('notification-updates')
       .on(
         'broadcast',
         { event: 'notifications-updated' },
