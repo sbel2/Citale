@@ -21,6 +21,7 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
     const [isVideo, setIsVideo] = useState(false);
     const [videoType, setVideoType] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         post_id: post_id,
         title: "",
@@ -92,8 +93,9 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
     },[post_id])
 
     const handleUpdatePost = async () => {
+        if (loading) return;
+        setLoading(true);
         try {
-
             const postPayload = {
                 ...formData,
             };
@@ -127,6 +129,8 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
             router.push(`/account/profile/${user?.id}`); // Redirect to dynamic profile page
         } catch (err) {
             alert("There was an error submitting your post.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -197,11 +201,14 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
                 <div className="w-full mt-6">
                 <ShareForm formData={formData} setFormData={setFormData} />
                 <button
-                    onClick={handleUpdatePost}
-                    className="w-[20%] md:w-[10%] bg-red-600 text-white py-2 mt-4 rounded-md hover:bg-red-700 transition mt-8 mb-[128px]"
-                >
-                    Post
-                </button>
+                        onClick={handleUpdatePost}
+                        disabled={loading}
+                        className={`w-[20%] md:w-[10%] py-2 mt-4 rounded-md transition mt-8 mb-[128px] ${
+                            loading ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white"
+                        }`}
+                    >
+                        {loading ? "Posting..." : "Post"}
+                    </button>
                 </div>
             </div>
           )}
