@@ -52,7 +52,7 @@ export default function Page({ params }: { params: { post: string, id: string } 
   }
 
   return (
-    <div className="post-container md:w-[750px] md:h-[600px] lg:w-[850px] lg:h-[678px] md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+    <div className="post-container md:w-[750px] md:h-[600px] lg:w-[850px] lg:h-[678px] md:left-[calc(50%+8rem)] md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
       <PostComponent post={postData} context="static" />
       <style jsx>{`
         .post-container {

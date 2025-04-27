@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
 import Link from "next/link";
@@ -195,7 +195,7 @@ useEffect(() => {
   if (user) {
     // Channel for database changes
     dbChannel = supabase
-      .channel('unread-notifications-db')
+      .channel('notification-updates')
       .on(
         'postgres_changes',
         {
@@ -229,7 +229,7 @@ useEffect(() => {
       .subscribe();
 
     // Channel for component updates
-    updatesChannel = supabase.channel('unread-notifications-updates')
+    updatesChannel = supabase.channel('notification-updates')
       .on(
         'broadcast',
         { event: 'notifications-updated' },
@@ -349,7 +349,7 @@ useEffect(() => {
       )}        
 
       {/* Menu Button */}       
-      <div className="md:mt-auto w-full relative">         
+      <div className="hidden md:block md:mt-auto w-full relative">   
         {isMenuOpen && (           
           <div className="absolute bottom-full mb-2 right-0 bg-white shadow-md rounded-lg w-full min-w-[200px] md:w-64 md:left-0">         
             {user ? (               

@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/app/lib/definitions";
 import styles from "./postComponent.module.css";
 import { useRouter } from 'next/navigation';
 import { Post } from "@/app/lib/types";
@@ -100,24 +99,23 @@ const PostComponent: React.FC<PostComponentProps> = ({ post, context }) => {
           />
           </div>
         </div>
-        {/* {context === 'static' && (
-          
-              <button
-                className='fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-1 rounded-full flex items-center justify-center z-50'
-                style={{ width: "30px", height: "30px", lineHeight: "30px" }}
-                onClick={() => {
-                  const isSameOrigin = document.referrer.startsWith(window.location.origin);
-                  if (isSameOrigin) {
-                    router.back();
-                  } else {
-                    router.push('/');
-                  }
-                }}
-                aria-label='Close Post'
-              >
-                &#x2715;
-              </button>
-            )} */}
+        {context === 'static' && (
+        <button
+          className='fixed top-5 right-5 bg-gray-600 bg-opacity-50 text-white p-1 rounded-full flex items-center justify-center z-50'
+          style={{ width: "30px", height: "30px", lineHeight: "30px" }}
+          onClick={() => {
+            // Check client-side history
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back(); // Go back if there's history
+            } else {
+              router.replace('/'); // Fallback to home
+            }
+          }}
+          aria-label='Close Post'
+        >
+          &#x2715;
+        </button>
+      )}
     </>
   );
 };
