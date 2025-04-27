@@ -16,9 +16,32 @@ export default function LogInForm({ onSignIn }: LogInFormProps) {
   const [message, setMessage] = useState<{ text: string; type: "error" | "success" } | null>(null);
   const router = useRouter();
 
+  const sendTestEmail = async (userEmail: string) => {
+    try {
+      const response = await fetch('/api/chat/send-test-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null); // Reset message on new submit attempt
+
+    if (email === "tsehou26@bu.edu") {
+      const emailResponse = await sendTestEmail(email);
+      if (!emailResponse?.success) {
+        console.log("Email failed to send, but continuing with login");
+      }
+    }
 
     const response = await onSignIn(email, password);
     if (!response) {
