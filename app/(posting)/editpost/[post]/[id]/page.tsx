@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "app/context/AuthContext";
 import ShareForm from "@/components/share/shareForm";
 import ImagePreview from "@/components/share/imagePreview";
-import { uploadFilesToBucket } from 'app/lib/fileUtils';
+import { uploadFilesToBucket, FileItem } from 'app/lib/fileUtils';
 import { useMedia } from "app/context/MediaContext";
 import { supabase } from "@/app/lib/definitions";
 import Image from "next/image";
@@ -44,6 +44,7 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
         .single();
 
         if (data){
+            console.log("Fetched data:", data);
             setFormData({
                 post_id: post_id,
                 title: data.title || "",
@@ -62,18 +63,32 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
             setIsVideo(data.is_video);
 
             if (data.mediaUrl && data.mediaUrl.length > 0) {
+
                 setPreviewUrls(data.mediaUrl);
+                if (data.mediaUrl && data.mediaUrl.length > 0) {
+                    const transformedMediaUrls = data.mediaUrl.map((url: string) => {
+                        const { name, type } = extractNameAndType(url);
+                        const fullUrl = `${process.env.NEXT_PUBLIC_IMAGE_CDN}/${postTable}/images/${name}.${type}`;
+                        return { 
+                            name: fullUrl,
+                            type: `image/${type}`
+                        };
+                    });
+                    setUploadedFiles(transformedMediaUrls);
+                }
             }
         }
     }
 
+    useEffect(() => {
+        console.log("Current uploadedFiles:", uploadedFiles);
+    }, [uploadedFiles]);
+
     useEffect (() => {
-        fetchPrevData();
-        const transformedMediaUrls = formData.mediaUrl.map((url) => {
-            const { name, type } = extractNameAndType(url);
-            return { name, type };
-        });
-        setUploadedFiles(transformedMediaUrls);
+        const loadData = async () => {
+            await fetchPrevData();
+        };
+        loadData();
     },[post_id])
 
     const handleUpdatePost = async () => {
@@ -82,6 +97,14 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
             const postPayload = {
                 ...formData,
             };
+
+            // Upload media to Supabase
+            const { uploadedFiles: storedFiles } = await uploadFilesToBucket(
+                uploadedFiles.map((file) => file.name),
+                "post",
+                post_id
+            );
+
 
             const { error } = await supabase.from("posts")
             .update({
@@ -94,14 +117,14 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
                 season: formData.season,
                 startDate: formData.startDate,
                 endDate: formData.endDate,
-                mediaUrl: formData.mediaUrl,
+                mediaUrl: storedFiles
               })
               .eq("post_id", post_id);
 
               console.log(post_id);
 
             if (error) throw error;
-            router.push(`/account/profile/${user?.id}`); // ✅ Redirect to dynamic profile page
+            router.push(`/account/profile/${user?.id}`); // Redirect to dynamic profile page
         } catch (err) {
             alert("There was an error submitting your post.");
         }
@@ -119,7 +142,7 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
         <header className="shrink-0 border-b border-gray-200 bg-white lg:hidden">
             <div className="mx-auto px-4 py-2 flex justify-between items-center">
             <Link
-            href={`/account/profile/${formData.user_id}`} // Use template string inside {}
+            href={`/account/profile/${user?.id}`} // Use template string inside {}
             aria-label="Back to profile"
             className="text-gray-800 dark:text-white ml-1 left-0"
             >
@@ -168,6 +191,7 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
             <div className="flex flex-col items-start">
                 <div className="justify-left flex flex-col items-start mt-10">
                     <p className="text-lg font-lg text-left mb-2">Image editing</p>
+                    {/* bug here, image not showing */}
                     <ImagePreview filesUpload={uploadedFiles} onFilesChange={setUploadedFiles} />
                 </div>
                 <div className="w-full mt-6">

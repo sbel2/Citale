@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -46,6 +46,10 @@ const DraggableImage = ({
     },
   });
 
+  useEffect(() => {
+    console.log(file.name);
+  }, [file.name]);
+
   return (
     <div
       ref={(node) => {
@@ -57,7 +61,14 @@ const DraggableImage = ({
         isDragging ? "opacity-50" : "opacity-100"
       }`}
     >
-      <Image src={file.name} alt={`Uploaded ${index}`} layout="fill" objectFit="cover" className="rounded-lg" />
+      <Image 
+        src={file.name} 
+        alt={`Uploaded ${index}`} 
+        layout="fill" 
+        objectFit="cover" 
+        className="rounded-lg"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
     </div>
   );
 };
