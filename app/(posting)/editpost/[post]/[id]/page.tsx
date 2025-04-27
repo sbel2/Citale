@@ -187,11 +187,11 @@ export default function EditPostPage({ params }: {  params: { post: string, id: 
                 </button>
               </div>
             </div>
+            
           ) : (
             <div className="flex flex-col items-start">
                 <div className="justify-left flex flex-col items-start mt-10">
                     <p className="text-lg font-lg text-left mb-2">Image editing</p>
-                    {/* bug here, image not showing */}
                     <ImagePreview filesUpload={uploadedFiles} onFilesChange={setUploadedFiles} />
                 </div>
                 <div className="w-full mt-6">

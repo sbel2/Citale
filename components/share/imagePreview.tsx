@@ -86,6 +86,10 @@ const ImagePreview = ({
   const [imageIndex, setImageIndex] = useState<number>(0);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
+  useEffect(() => {
+    setFiles(filesUpload || []);
+  }, [filesUpload]);
+
   const moveFile = useCallback(
     (dragIndex: number, hoverIndex: number) => {
       setFiles((prevFiles) => {
